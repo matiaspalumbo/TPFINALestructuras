@@ -35,17 +35,17 @@ PROCESO DE VALIDACIÓN DE INPUT:
 
 
 1. chequear si quiere salir
-2. sscanf(input, "%s %s", buff, input);
+2. `sscanf(input, "%s %s", buff, input);`
 3. chequear si quiere imprimir
-4. sscanf(input, " = %c%s", char1, input);
+4. `sscanf(input, " = %c%s", char1, input);`
 5. chequear:
-      1. Si quiere complemento (char1 == '~'). En ese caso, input debe estar almacenado en memoria.
-      2. Si quiere crear un conjunto (char1 == '{'). En ese caso, 
-         sscanf(input, "%c%s", char3, input). Si char3 es una letra, se quiere definir por comprensión.
-         En ese caso: sscanf(input, " : %d <= %c <= %d%c", izq, char4, der, rightBrace); (chequear que char3 == char4 y rightBrace == '}').
+      1. Si quiere complemento (`char1 == '~'`). En ese caso, `input` debe estar almacenado en memoria.
+      2. Si quiere crear un conjunto (`char1 == '{'`). En ese caso, 
+         `sscanf(input, "%c%s", char3, input)`. Si `char3` es una letra, se quiere definir por comprensión.
+         En ese caso: `sscanf(input, " : %d <= %c <= %d%c", izq, char4, der, rightBrace)`; (chequear que `char3 == char4` y `rightBrace == '}'`).
          Caso contrario, iterar el sscanf chequeando las comas y llaves para ver cuando terminar el conjunto.
-      3. Si no quiere ninguna de las dos, GUARDAR el char (porque es el primer char de alias1)
-6. sscanf(input, "%s %c %s", alias1, char2, alias2);
+      3. Si no quiere ninguna de las dos, GUARDAR `char1` (porque es el primer char de `alias1`)
+6. `sscanf(input, "%s %c %s", alias1, char2, alias2);`
 7. Para que el comando sea valido:
-      1. strcat(char1, alias1) y alias2 deben estar almacenados en memoria
-      2. char2 debe ser '|', '&' o '-'
+      1. `strcat(char1, alias1)` y `alias2` deben estar almacenados en memoria
+      2. `char2` debe ser `'|'`, `'&'` o `'-'`
