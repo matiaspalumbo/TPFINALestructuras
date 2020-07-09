@@ -21,11 +21,11 @@ Impresión de conjuntos:
 - Los intervalos dentro de un conjunto son impresos de la forma `a:b`, donde a y b son los extremos izquierdo y derecho, respectivamente. Los elementos del conjunto son impresos separados por `,`: `-4:7, 10, 45`
 
 COMANDOS:
-salir
-imprimir A
-A = {1,2,3,4}
-B = {x : 2 <= x <= 7}
-A = A & B
-A = A | B
-B = B - A
-A = ~A
+`salir`
+`imprimir A`
+`A = {1,2,3,4}`
+`B = {x : 2 <= x <= 7}`
+`A = A & B`
+`A = A | B`
+`B = B - A`
+`A = ~A`
