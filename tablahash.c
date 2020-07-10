@@ -1,5 +1,5 @@
 #include "tablahash.h"
-#include "../Implementaciones/Pilas/pila.h"
+#include "pila.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -174,7 +174,7 @@ void tablahash_destruir(TablaHash* tabla) {
 
 void imprimir_th(TablaHash* th) {
   printf("--- TABLA HASH (%u:%u) ---\n", th->numElems, th->capacidad);
-  for (int i = 0; i < th->capacidad; i++) {
+  for (unsigned i = 0; i < th->capacidad; i++) {
     if (th->tabla[i].clave == NULL) puts("NULL");
     else {
       printf("%s\n", ((char*)th->tabla[i].dato));
