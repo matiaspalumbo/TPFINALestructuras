@@ -31,7 +31,7 @@ COMANDOS:
 - `B = B - A`
 - `A = ~A`
 
-PROCESO DE VALIDACIÓN DE INPUT:
+<!-- PROCESO DE VALIDACIÓN DE INPUT:
 
 
 1. chequear si quiere salir
@@ -48,9 +48,9 @@ PROCESO DE VALIDACIÓN DE INPUT:
 6. `sscanf(input, "%s %c %s", alias1, char2, alias2);`
 7. Para que el comando sea valido:
       1. `strcat(char1, alias1)` y `alias2` deben estar almacenados en memoria
-      2. `char2` debe ser `'|'`, `'&'` o `'-'`
+      2. `char2` debe ser `'|'`, `'&'` o `'-'` -->
 
-
+PROCESO DE VALIDACIÓN DE INPUT (ACTUALIZADO):
 
 1. `int a = sscanf(input, "%s %s %s", s1, s2, s3);`
 2. si `a == 1` y `s1 == "salir"`, salir
