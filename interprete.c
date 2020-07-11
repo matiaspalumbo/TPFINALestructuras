@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #define DEFAULT_STR_SIZE 50
 #define INPUT_GROWTH_RATE 1.5
@@ -26,11 +27,25 @@ int igualesStr(void* clave1, void* clave2) {
   return strcmp((char*)clave1, (char*)clave2);
 }
 
-
+// void validar_char(Estado* estado, char input, int c) {
+//   char *plantilla = "  [, ]"; /* Se utiliza una "plantilla" con los caracteres correctos para comparar. */
+//   if (c == 0) {
+//     if (input == 'i')
+//       return Insertar;
+//     else if (input == 'e')
+//       return Eliminar;
+//     else
+//       return (input == '?') ? Intersecar : ComandoNoValido;
+//   }
+//   else if (plantilla[c] != input) /* Si el caracter no es el esperado, el comando no es válido. */
+//     return ComandoNoValido;
+//   else
+//     return estado;
+// }
 
 /* validar_char busca verificar si el caracter dado es el esperado en los comandos de
 Insertar, Eliminar e Intersecar. */
-void validar_char(char c, Estado* estado) {
+void validar_operacion(char c, Estado* estado) {
   switch(c) {
     case '|':
       estado->estadoInput = Unir;
@@ -55,7 +70,7 @@ void* validar_conjunto(TablaHash* listaConjuntos, char* conjunto) {
 // int validar_comando(char* input, Estado* estado) {
 //   char buffer[DEFAULT_STR_SIZE];
 //   switch (estado->estadoInput) {
-//     case Salir:
+//     case Salir:\
 //       return strcmp(input, "salir\n") == 0;
 //       break;
 //     case Imprimir:
@@ -69,12 +84,257 @@ sscanf(input, "%s %s %s %c %s", )
 ---
 sscanf(input, "%s %s %s",);
 
-
 */
 
-void validar_input(char *input, TablaHash* conjs, Estado* estado) {
-
+void actualizar_estado(Estado* estado, enum EstadoInput estInput, enum TipoError error, int condicion) {
+  if (condicion) 
+    estado->estadoInput = estInput;
+  else 
+    estado->tipoError = error;
 }
+
+void imprimir(int dato) { // TO DELETE. !!! ALSO DELETE EVERYTHING RELATED TO COLAS IN THIS FILE
+  printf("%d - ", dato);
+}
+
+void validar_input(char *input, TablaHash* conjs, Estado* estado, GList elements) {
+  // char buffer1[DEFAULT_STR_SIZE];
+  // char buffer2[DEFAULT_STR_SIZE];
+  // char buffer3[DEFAULT_STR_SIZE];
+  int cond = 0;
+  int izq, der;
+  puts("Entró a validar_input");
+  int numEscaneos = sscanf(input, "%s %s %[^\n]\n", estado->alias[0], estado->alias[1], estado->alias[2]);
+  printf("Pudo escanear %d. BUFFERS: %s-%s-%s\n", numEscaneos, estado->alias[0], estado->alias[1], estado->alias[2]);
+  if (numEscaneos == 1 && strcmp(estado->alias[0], "salir") == 0) {
+    printf("Entró a SALIR: %s - %s - %s\n", estado->alias[0], estado->alias[1], estado->alias[2]);
+    estado->estadoInput = Salir;
+  } else if (numEscaneos == 2 && strcmp(estado->alias[0], "imprimir") == 0) {
+    cond = validar_conjunto(conjs, estado->alias[1]) != NULL;
+    actualizar_estado(estado, Imprimir, ConjuntoInexistente, cond);
+    printf("Entró a IMPRIMIR: %s - %s - %s\n", estado->alias[0], estado->alias[1], estado->alias[2]);
+  } else if (numEscaneos == 3 && strcmp(estado->alias[1], "=") == 0) {
+    printf("Entró a VER QUE MIERDA PASA: %s - %s - %s\n", estado->alias[0], estado->alias[1], estado->alias[2]);
+    switch (estado->alias[2][0]) {
+      puts("Entró al switch");
+      case '~':
+        puts("Entró a COMPLEMENTO");
+        cond = validar_conjunto(conjs, &(estado->alias[2][1])) != NULL;
+        actualizar_estado(estado, Complemento, ConjuntoInexistente, cond);
+      break;
+      case '{':
+        if (isalpha(estado->alias[2][1])) {
+          puts("Entró a CREAR POR COMPRENSION");
+          char c1, c2, c3;
+          // char buffer4[DEFAULT_STR_SIZE];
+          numEscaneos = sscanf(estado->alias[2], "{%c : %d <= %c <= %d%c", &c1, &izq, &c2, &der, &c3);
+          cond = numEscaneos = 5 && /* strcmp(buffer4, "}") == 0 && */ c1 == c2 && c3 == '}';
+          printf("CHARS: %d %d %d\n", c1, c2, c3);
+          actualizar_estado(estado, CrearPorComprension, ComandoNoValido, cond);
+        } else if (isdigit(estado->alias[2][1]) || estado->alias[2][1] == 45) {
+          puts("Entró a CREAR POR EXTENSION");
+          // int dato;
+          char c = ',';
+          int i = 3;
+          printf("buffer3: %s - i: %d - c: %c\n", estado->alias[2], i, c);
+          sscanf(estado->alias[2], "{%s", estado->alias[2]);
+          printf("buffer3: %s - i: %d - c: %c\n", estado->alias[2], i, c);
+          while (i == 3 && c == ',') {
+            int *dato = malloc(sizeof(int));
+            printf("buffer3: %s - i: %d - c: %c\n", estado->alias[2], i, c);
+            i = sscanf(estado->alias[2], "%d%c%s", dato, &c, estado->alias[2]);
+            if (i > 0) gdclist_agregar_final(elements, dato);
+          }
+          printf("buffer3: %s - i: %d - c: %c\n", estado->alias[2], i, c);
+          if (i == 2 && c == '}') {
+            estado->estadoInput = CrearPorExtension;
+          } else
+            estado->tipoError = ComandoNoValido;
+          // printf("Quiere imprimir la cola: "); gdcli(elements, imprimir);
+        } else estado->tipoError = ComandoNoValido;
+      break;
+      default:
+        puts("Operación entre conjuntos");
+    }
+  } else {
+    puts("error");
+    estado->tipoError = ComandoNoValido;
+  }
+  printf("cond: %d\n", cond);
+}
+
+
+void preparar_estado(Estado* estado) {
+  estado->tipoError = NoError;
+  estado->estadoInput = Imprimir;
+  estado->alias[0][0] = '\0';
+  estado->alias[1][0] = '\0';
+  estado->alias[2][0] = '\0';
+}
+
+
+size_t get_input(char** input) {
+  puts("entró a get_input");
+  char c = fgetc(stdin);
+  size_t len_input = DEFAULT_STR_SIZE;
+  size_t i = 0;
+  for (; c != '\n'; i++) {
+    if (i == len_input-2) {
+      len_input *= INPUT_GROWTH_RATE;
+      puts("Reallocating input");
+      *input = realloc(*input, sizeof(char)*len_input);
+    }
+    (*input)[i] = c;
+    c = fgetc(stdin);
+  }
+  (*input)[i] = '\n';
+  (*input)[i+1] = '\0';
+  puts("successfuly salió de get_input");
+  return len_input;
+}
+
+void destruir_int(void* n) {
+  free(n);
+}
+
+
+/* La función interface recibe input mientras no se desee salir del intérprete
+y realiza las acciones correspondientes sobre el ITree creado. */
+void interface() {
+  char* input = malloc(sizeof(char)*DEFAULT_STR_SIZE);
+  puts("entro a interface");
+  // char** operandos = malloc(sizeof(char*)*3);
+  size_t len_input = get_input(&input); // fix this, probably don't need the ampersand
+  size_t len_input2;
+  puts("successfully got input");
+  // for (int i=0; i<3; i++)
+    // operandos[i] = malloc(sizeof(char)*len_input);
+
+  TablaHash* listaConjuntos = tablahash_crear(HASH_TABLE_DEF_SIZE, hashStrings, igualesStr);
+  puts("Created hash table");
+
+  Estado *estado = malloc(sizeof(Estado));
+  for (int i=0; i<3; ++i) {
+    puts("Allocating aliases");
+    estado->alias[i] = malloc(sizeof(char)*len_input);
+  }
+  // estado->alias1 = malloc(sizeof(char)*len_input);
+  // estado->alias2 = malloc(sizeof(char)*len_input);
+  // estado->alias3 = malloc(sizeof(char)*len_input);
+  preparar_estado(estado);
+  GList elements = gdclist_crear();
+
+  puts("Initialized and prepared state");
+
+  validar_input(input, listaConjuntos, estado, elements);
+
+  printf("%u - %u\n", estado->estadoInput, estado->tipoError);
+  
+  // ....
+  while (estado->estadoInput != Salir) {
+    puts("interface: Entro al while");
+    if (estado->tipoError != NoError) {
+      printf("Hubo un error en el comando: %d\n", estado->tipoError);
+    } else {
+      switch (estado->estadoInput) {
+        case Imprimir:
+          puts("Imprimir.");
+        break;
+        case CrearPorExtension:
+          puts("CrearPorExtension.");
+          gdclist_destruir(elements, destruir_int);
+          elements = gdclist_crear();
+        break;
+        case CrearPorComprension:
+          puts("CrearPorComprension.");
+          gdclist_destruir(elements, destruir_int);
+          elements = gdclist_crear();
+        break;
+        case Unir:
+          puts("Unir.");
+        break;
+        case Intersecar:
+          puts("Intersecar.");
+        break;
+        case Resta:
+          puts("Resta.");
+        break;
+        case Complemento:
+          puts("Complemento.");
+        break;
+        default: return;
+      }
+    }
+    len_input2 = get_input(&input);
+    if (len_input2 > len_input) {
+      len_input = len_input2;
+      puts("ReaLLOCEd");
+      for (int i=0; i<3; ++i)
+        estado->alias[i] = realloc(estado->alias[i], len_input);
+    }
+    preparar_estado(estado);
+    validar_input(input, listaConjuntos, estado, elements);
+  }
+  puts("Salir");
+  free(input);
+  free(estado);
+  gdclist_destruir(elements, destruir_int);
+  // for (int i=0; i<3; i++) free(operandos[i]);
+  // free(operandos);
+}
+
+
+
+
+
+//   ITree arbol = itree_crear();
+//   ITree interseccion;
+//   enum EstadoInput estado;
+//   Intervalo* intv = malloc(sizeof(Intervalo));
+//   fgets(input, STR_SIZE, stdin);
+//   estado = validar_input(input, intv);
+//   while  (estado != Salir) {
+//     /* El siguiente switch contempla los posibles valores del EstadoInput estado. */
+//     switch(estado) {
+//       case RecorridoBFS:
+//         itree_recorrer_bfs(arbol, imprimir_intervalo);
+//         puts("");
+//       break;
+//       case RecorridoDFS:
+//         itree_recorrer_dfs(arbol, imprimir_intervalo);
+//         puts("");
+//       break;
+//       case Insertar:
+//         arbol = itree_insertar(arbol, intv);
+//       break;
+//       case Eliminar:
+//         arbol = itree_eliminar(arbol, intv);
+//       break;
+//       case Intersecar:
+//         interseccion = itree_intersecar(arbol, intv);
+//         if (interseccion) {
+//           printf("Si, ");
+//           imprimir_intervalo(interseccion);
+//           puts("");
+//         } else
+//           puts("No");
+//       break;
+//       case ComandoNoValido:
+//         puts("Comando no válido.");
+//       break;
+//       default:
+//         puts("Intervalo no válido.");
+//     }
+//     fgets(input, STR_SIZE, stdin);
+//     estado = validar_input(input, intv);
+//   }
+//   /* Se libera la memoria requerida para buffers y se destruye el ITree. */
+//   free(input);
+//   free(intv);
+//   itree_destruir(arbol);
+// }
+
+
 
 
 
@@ -217,128 +477,4 @@ void validar_input(char *input, TablaHash* conjs, Estado* estado) {
 //   }
 // return estado; /* Se devuelve el estado correspondiente. */
 // }
-
-
-size_t get_input(char** input) {
-  char c = fgetc(stdin);
-  size_t len_input = DEFAULT_STR_SIZE;
-  for (int i = 0; c != '\n'; i++) {
-    if (i == len_input) {
-      len_input *= INPUT_GROWTH_RATE;
-      *input = realloc(input, sizeof(char)*len_input);
-    }
-    (*input)[i] = c;
-    c = fgetc(stdin);
-  }
-  return len_input;
-}
-
-
-
-/* La función interface recibe input mientras no se desee salir del intérprete
-y realiza las acciones correspondientes sobre el ITree creado. */
-void interface() {
-  char* input = malloc(sizeof(char)*DEFAULT_STR_SIZE);
-  char** operandos = malloc(sizeof(char*)*3);
-  size_t len_input = get_input(&input); // fix this, probably don't need the ampersand
-  for (int i=0; i<3; i++)
-    operandos[i] = malloc(sizeof(char)*len_input);
-
-  TablaHash* listaConjuntos = tablahash_crear(HASH_TABLE_DEF_SIZE, hashStrings, igualesStr);
-
-  Estado *estado = malloc(sizeof(Estado));
-
-  validar_input(input, listaConjuntos, estado);
-  
-  // ....
-  while  (estado->estadoInput != Salir) {
-    if (estado->tipoError) {
-      puts("Hubo un error en el comando.");
-    } else {
-      switch (estado->estadoInput) {
-        case Imprimir:
-        puts("Imprimir.");
-        break;
-        case CrearPorExtension:
-        puts("CrearPorExtension.");
-        break;
-        case CrearPorComprension:
-        puts("CrearPorComprension.");
-        break;
-        case Unir:
-        puts("Unir.");
-        break;
-        case Intersecar:
-        puts("Intersecar.");
-        break;
-        case Resta:
-        puts("Resta.");
-        break;
-        case Complemento:
-        puts("Complemento.");
-        break;
-        default: return;
-      }
-    }
-    get_input(&input);
-    validar_input(input, listaConjuntos, estado);
-  }
-
-  free(input);
-  free(estado);
-  for (int i=0; i<3; i++) free(operandos[i]);
-  free(operandos);
-}
-
-
-
-
-
-//   ITree arbol = itree_crear();
-//   ITree interseccion;
-//   enum EstadoInput estado;
-//   Intervalo* intv = malloc(sizeof(Intervalo));
-//   fgets(input, STR_SIZE, stdin);
-//   estado = validar_input(input, intv);
-//   while  (estado != Salir) {
-//     /* El siguiente switch contempla los posibles valores del EstadoInput estado. */
-//     switch(estado) {
-//       case RecorridoBFS:
-//         itree_recorrer_bfs(arbol, imprimir_intervalo);
-//         puts("");
-//       break;
-//       case RecorridoDFS:
-//         itree_recorrer_dfs(arbol, imprimir_intervalo);
-//         puts("");
-//       break;
-//       case Insertar:
-//         arbol = itree_insertar(arbol, intv);
-//       break;
-//       case Eliminar:
-//         arbol = itree_eliminar(arbol, intv);
-//       break;
-//       case Intersecar:
-//         interseccion = itree_intersecar(arbol, intv);
-//         if (interseccion) {
-//           printf("Si, ");
-//           imprimir_intervalo(interseccion);
-//           puts("");
-//         } else
-//           puts("No");
-//       break;
-//       case ComandoNoValido:
-//         puts("Comando no válido.");
-//       break;
-//       default:
-//         puts("Intervalo no válido.");
-//     }
-//     fgets(input, STR_SIZE, stdin);
-//     estado = validar_input(input, intv);
-//   }
-//   /* Se libera la memoria requerida para buffers y se destruye el ITree. */
-//   free(input);
-//   free(intv);
-//   itree_destruir(arbol);
-// }
-
 

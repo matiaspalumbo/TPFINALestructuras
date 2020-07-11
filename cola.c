@@ -1,50 +1,95 @@
 #include <stdlib.h>
+#include <assert.h>
 #include <stdio.h>
+#include <math.h>
 #include "cola.h"
 
-/* Archivo con la implementación de la estructura cola. */
+/*
+typedef struct _Cola {
+  ColaSNodo* primero;
+  ColaSNodo* ultimo;
+} *Cola;
+*/
 
 
 Cola cola_crear() {
-  Cola cola = malloc(sizeof(struct _Cola));
+  Cola cola = malloc(sizeof(Cola));
   cola->primero = NULL;
   cola->ultimo = NULL;
   return cola;
 }
 
+
+// Determina si la cola está vacía.
 int cola_es_vacia(Cola cola) {
-  return cola->ultimo == NULL;
+  return cola->primero == NULL;
 }
 
-ITNodo *cola_primero(Cola cola) {
+
+int cola_primero(Cola cola) {
+  assert(!cola_es_vacia(cola));
   return cola->primero->dato;
 }
 
-void cola_encolar(Cola cola, ITNodo *dato) {
-  /* Crea el nuevo nodo a encolar con el dato pasado. */
-  CNodo *nuevoNodo = malloc(sizeof(CNodo));
+void cola_encolar(Cola cola, int dato) {
+  ColaSNodo* nuevoNodo = malloc(sizeof(ColaSNodo));
   nuevoNodo->dato = dato;
   nuevoNodo->sig = NULL;
-  /* Si la cola es vacía el nuevo nodo va a ser el primero de la cola. En caso de no serlo, 
-  sería el siguiente del último. Una vez ubicado, el nuevo nodo será el último de la cola. */
   if (cola_es_vacia(cola))
-    cola->primero = nuevoNodo;
+    cola->primero  = nuevoNodo;
   else
     cola->ultimo->sig = nuevoNodo;
-  cola->ultimo = nuevoNodo; 
+  cola->ultimo = nuevoNodo;
 }
 
 void cola_desencolar(Cola cola) {
-  if (!cola_es_vacia(cola)) {
-    CNodo *nodoAEliminar = cola->primero; /* Selecciono el nodo a eliminar si la cola no es vacía. */
-    if (cola->ultimo == cola->primero) cola->ultimo = NULL; /* Si la cola tiene un solo elemento, queda vacía. */
-    cola->primero = cola->primero->sig;
-    free(nodoAEliminar); 
+  ColaSNodo* elemAEliminar = cola->primero;
+  cola->primero = cola->primero->sig;
+  free(elemAEliminar);
+}
+
+void cola_imprimir(Cola cola, FuncionImpresora imprimir) {
+  ColaSNodo* temp = cola->ultimo;
+  for (; temp->sig != NULL; temp = temp->sig);
+  ColaSNodo* toStop = temp;
+  while (temp != cola->ultimo) {
+    imprimir(temp->dato);
+    temp = cola->ultimo;
+    for (; temp->sig != toStop; temp = temp->sig);
+    toStop = temp;
   }
+  imprimir(cola->ultimo->dato);
+  puts("");
+
+
+
+
+  for (ColaSNodo* elem = cola->primero; elem != NULL; elem = elem->sig)
+      imprimir(elem->dato);
+  puts("");
+}
+
+void cola_vaciar(Cola cola) {
+  ColaSNodo *elemAEliminar;
+  while (cola->primero != NULL) {
+    elemAEliminar = cola->primero;
+    cola->primero = cola->primero->sig;
+    free(elemAEliminar);
+  }
+  cola->primero = NULL;
+  cola->ultimo = NULL;
 }
 
 void cola_destruir(Cola cola) {
-  for (CNodo *nodo = cola->primero; nodo != NULL; nodo = nodo->sig)
-    free(nodo);
+  ColaSNodo *elemAEliminar;
+  while (cola->primero != NULL) {
+    elemAEliminar = cola->primero;
+    cola->primero = cola->primero->sig;
+    free(elemAEliminar);
+  }
   free(cola);
 }
+
+
+
+

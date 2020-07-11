@@ -1,22 +1,46 @@
 #ifndef __SETS_H__
 #define __SETS_H__
-#include "itree.h"
+// #include "itree.h"
 
-typedef ITNodo SetElem;
-typedef ITree Set;
+// #include "cola.h"
+
+#include "gdclist.h"
+
+// typedef ITNodo SetElem;
+// typedef ITree Set;
+
+typedef enum _TipoDefinicion {
+  Comprension,
+  Extension
+} TipoDefinicion;
+
+typedef struct {
+  int left, right;
+} Intervalo;
+
+typedef struct {
+  unsigned nElems;
+  GList set;
+} Set;
+
+// typedef struct {
+//   unsigned nElems;
+//   Intervalo* set;
+// } Set;
 
 
-Set set_create(int *elements);
 
-Set set_union(Set set1, Set set2);
+Set* set_create(TipoDefinicion tipo, unsigned nElems, GList elements);
 
-Set set_intersection(Set set1, Set set2);
+// Set set_union(Set set1, Set set2);
 
-Set set_substraction(Set set1, Set set2);
+// Set set_intersection(Set set1, Set set2);
 
-Set set_complement(Set set);
+// Set set_substraction(Set set1, Set set2);
 
-void set_print(Set set);
+// Set set_complement(Set set);
+
+// void set_print(Set set);
 
 
 
