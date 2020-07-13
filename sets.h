@@ -32,6 +32,8 @@ typedef struct {
 
 Set* set_create(TipoDefinicion tipo, unsigned nElems, GList elements);
 
+void set_destroy(Set* set);
+
 // Set set_union(Set set1, Set set2);
 
 // Set set_intersection(Set set1, Set set2);

@@ -12,19 +12,34 @@ GList gdclist_crear() {
 }
 
 void gdclist_destruir(GList lista, Destruir funcion_destructora) {
-  lista->ant->sig = NULL; // Iguala a NULL el siguiente del último elemento de la lista para facilitar la terminación del bucle.
+  if (!gdclist_es_vacia(lista)) {
+    lista->ant->sig = NULL; // Iguala a NULL el siguiente del último elemento de la lista para facilitar la terminación del bucle.
+    GNodo *nodoAEliminar;
+    while (lista != NULL) { // El bucle se repite hasta que lista llegue a su último elemento.
+    // Por cada iteración, elimina el nodo y si es necesario el dato al que apunta.
+      nodoAEliminar = lista;
+      lista = lista->sig;
+      // En caso de ser necesario libera el espacio en memoria del dato del nodo.
+      // Si funcion_destructora == NULL, se asume que no es necesario destruir el dato.
+      if (funcion_destructora != NULL)
+        funcion_destructora(nodoAEliminar->dato);
+      // Y luego se libera la memoria del propio nodo.
+      free(nodoAEliminar);
+    }
+  }
+}
+
+GList gdclist_vaciar(GList lista, Destruir funcion_destructora) {
+  lista->ant->sig = NULL;
   GNodo *nodoAEliminar;
-  while (lista != NULL) { // El bucle se repite hasta que lista llegue a su último elemento.
-  // Por cada iteración, elimina el nodo y si es necesario el dato al que apunta.
+  while (lista != NULL) {
     nodoAEliminar = lista;
     lista = lista->sig;
-    // En caso de ser necesario libera el espacio en memoria del dato del nodo.
-    // Si funcion_destructora == NULL, se asume que no es necesario destruir el dato.
     if (funcion_destructora != NULL)
       funcion_destructora(nodoAEliminar->dato);
-    // Y luego se libera la memoria del propio nodo.
     free(nodoAEliminar);
   }
+  return NULL;
 }
 
 int gdclist_es_vacia(GList lista) {

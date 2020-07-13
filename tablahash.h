@@ -6,11 +6,35 @@
 
 typedef unsigned long (*FuncionHash)(void* clave);
 typedef int (*FuncionIgualdad)(void *, void *);
+typedef void (*FuncionDestructora)(void *);
 
-typedef struct _TablaHash TablaHash;
+/**
+ * Casillas en la que almacenaremos los datos de la tabla hash.
+ */
+typedef struct {
+  void* clave;
+  void* dato;
+  int eliminada; // 0 si es vacía, 1 si fue eliminada.
+} CasillaHash;
 
 
-TablaHash* tablahash_crear(unsigned capacidad, FuncionHash fun, FuncionIgualdad iguales);
+/**
+ * Estructura principal que representa la tabla hash.
+ */
+typedef struct _TablaHash {
+  CasillaHash* tabla;
+  unsigned numElems;
+  unsigned capacidad;
+  FuncionHash hash;
+  FuncionIgualdad iguales;
+  FuncionDestructora destruir;
+
+} TablaHash;
+
+
+
+
+TablaHash* tablahash_crear(unsigned capacidad, FuncionHash fun, FuncionIgualdad iguales, FuncionDestructora destruir);
 
 void tablahash_insertar(TablaHash* tabla, void* clave, void* dato);
 

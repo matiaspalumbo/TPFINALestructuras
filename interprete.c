@@ -1,4 +1,5 @@
 #include "interprete.h"
+#include "sets.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,9 +15,12 @@
 unsigned long hashStrings(void* str) {
   char* toHash = (char*)str;
   unsigned long hash = 1297; // Primo arbitrario
-  int c;
-  while ((c = *toHash++)) {
+  int c = toHash[0];
+  int j=0;
+  while (c != '\0') {
     hash = ((hash << 5) + hash) + c;
+    j++;
+    c = toHash[j];
     // printf("it: %lu - %c\n", hash, c);
   }
   return hash;
@@ -24,8 +28,9 @@ unsigned long hashStrings(void* str) {
 
 
 int igualesStr(void* clave1, void* clave2) {
-  return strcmp((char*)clave1, (char*)clave2);
+  return (strcmp((char*)clave1, (char*)clave2) == 0) ? 1 : 0;
 }
+
 
 // void validar_char(Estado* estado, char input, int c) {
 //   char *plantilla = "  [, ]"; /* Se utiliza una "plantilla" con los caracteres correctos para comparar. */
@@ -97,12 +102,11 @@ void imprimir(int dato) { // TO DELETE. !!! ALSO DELETE EVERYTHING RELATED TO CO
   printf("%d - ", dato);
 }
 
-void validar_input(char *input, TablaHash* conjs, Estado* estado, GList elements) {
+void validar_input(char *input, TablaHash* conjs, Estado* estado, GList* elements) {
   // char buffer1[DEFAULT_STR_SIZE];
   // char buffer2[DEFAULT_STR_SIZE];
   // char buffer3[DEFAULT_STR_SIZE];
   int cond = 0;
-  int izq, der;
   puts("Entró a validar_input");
   int numEscaneos = sscanf(input, "%s %s %[^\n]\n", estado->alias[0], estado->alias[1], estado->alias[2]);
   printf("Pudo escanear %d. BUFFERS: %s-%s-%s\n", numEscaneos, estado->alias[0], estado->alias[1], estado->alias[2]);
@@ -126,31 +130,39 @@ void validar_input(char *input, TablaHash* conjs, Estado* estado, GList elements
         if (isalpha(estado->alias[2][1])) {
           puts("Entró a CREAR POR COMPRENSION");
           char c1, c2, c3;
-          // char buffer4[DEFAULT_STR_SIZE];
-          numEscaneos = sscanf(estado->alias[2], "{%c : %d <= %c <= %d%c", &c1, &izq, &c2, &der, &c3);
-          cond = numEscaneos = 5 && /* strcmp(buffer4, "}") == 0 && */ c1 == c2 && c3 == '}';
+          int *par = malloc(sizeof(int)*2);
+          numEscaneos = sscanf(estado->alias[2], "{%c : %d <= %c <= %d%c", &c1, &(par[0]), &c2, &(par[1]), &c3);
+          for (int i = 0; i<2; i++)
+            *elements = gdclist_agregar_final(*elements, &(par[i]));
+          estado->nElems = 2;
+          cond = numEscaneos = 5 && c1 == c2 && c3 == '}';
           printf("CHARS: %d %d %d\n", c1, c2, c3);
           actualizar_estado(estado, CrearPorComprension, ComandoNoValido, cond);
         } else if (isdigit(estado->alias[2][1]) || estado->alias[2][1] == 45) {
           puts("Entró a CREAR POR EXTENSION");
-          // int dato;
           char c = ',';
-          int i = 3;
+          int i = 3, dato;
           printf("buffer3: %s - i: %d - c: %c\n", estado->alias[2], i, c);
           sscanf(estado->alias[2], "{%s", estado->alias[2]);
           printf("buffer3: %s - i: %d - c: %c\n", estado->alias[2], i, c);
           while (i == 3 && c == ',') {
-            int *dato = malloc(sizeof(int));
             printf("buffer3: %s - i: %d - c: %c\n", estado->alias[2], i, c);
-            i = sscanf(estado->alias[2], "%d%c%s", dato, &c, estado->alias[2]);
-            if (i > 0) gdclist_agregar_final(elements, dato);
+            i = sscanf(estado->alias[2], "%d%c%s", &dato, &c, estado->alias[2]);
+            if (i > 0) {
+              int* elem = malloc(sizeof(int));
+              *elem = dato;
+              *elements = gdclist_agregar_final(*elements, elem);
+              (estado->nElems)++;
+              puts("ALOOO");
+            }
           }
+          gdclist_imprimir(*elements);
           printf("buffer3: %s - i: %d - c: %c\n", estado->alias[2], i, c);
           if (i == 2 && c == '}') {
             estado->estadoInput = CrearPorExtension;
           } else
             estado->tipoError = ComandoNoValido;
-          // printf("Quiere imprimir la cola: "); gdcli(elements, imprimir);
+          // printf("Quiere imprimir la cola: "); gdcli(*elements, imprimir);
         } else estado->tipoError = ComandoNoValido;
       break;
       default:
@@ -170,6 +182,7 @@ void preparar_estado(Estado* estado) {
   estado->alias[0][0] = '\0';
   estado->alias[1][0] = '\0';
   estado->alias[2][0] = '\0';
+  estado->nElems = 0;
 }
 
 
@@ -197,20 +210,42 @@ void destruir_int(void* n) {
   free(n);
 }
 
+void insertar_conjunto(TablaHash* conjs, Estado* estado, GList elements, TipoDefinicion tipo, size_t len_input) {
+  printf("ELEMENTOS: %u\n", estado->nElems);
+  Set* newSet = set_create(tipo, estado->nElems, elements);
+  char* nombreConjunto = malloc(sizeof(char)*len_input);
+  printf("ALIAS 0 : %s\n", estado->alias[0]);
+  printf("NOMBRECONJUNTO : %s\n", nombreConjunto);
+  strcpy(nombreConjunto, estado->alias[0]);
+  printf("NOMBRECONJUNTO : %s\n", nombreConjunto);
+  tablahash_insertar(conjs, nombreConjunto, newSet);
+}
+
+// CREAR CABECERA APARTE PARA ESTADO
+
+// Estado* crear_estado();
+
+void destruir_estado(Estado* estado) {
+  for (int i=0; i<3; i++)
+    free(estado->alias[i]);
+  free(estado);
+}
+
+void destruir_set(void* set) {
+  set_destroy((Set*)set);
+}
+
+//   MEJORAR MANEJO DE LA MEMORIA
 
 /* La función interface recibe input mientras no se desee salir del intérprete
 y realiza las acciones correspondientes sobre el ITree creado. */
 void interface() {
   char* input = malloc(sizeof(char)*DEFAULT_STR_SIZE);
   puts("entro a interface");
-  // char** operandos = malloc(sizeof(char*)*3);
   size_t len_input = get_input(&input); // fix this, probably don't need the ampersand
   size_t len_input2;
   puts("successfully got input");
-  // for (int i=0; i<3; i++)
-    // operandos[i] = malloc(sizeof(char)*len_input);
-
-  TablaHash* listaConjuntos = tablahash_crear(HASH_TABLE_DEF_SIZE, hashStrings, igualesStr);
+  TablaHash* listaConjuntos = tablahash_crear(HASH_TABLE_DEF_SIZE, hashStrings, igualesStr, destruir_set);
   puts("Created hash table");
 
   Estado *estado = malloc(sizeof(Estado));
@@ -218,15 +253,17 @@ void interface() {
     puts("Allocating aliases");
     estado->alias[i] = malloc(sizeof(char)*len_input);
   }
-  // estado->alias1 = malloc(sizeof(char)*len_input);
-  // estado->alias2 = malloc(sizeof(char)*len_input);
-  // estado->alias3 = malloc(sizeof(char)*len_input);
   preparar_estado(estado);
+
   GList elements = gdclist_crear();
 
   puts("Initialized and prepared state");
 
-  validar_input(input, listaConjuntos, estado, elements);
+  gdclist_imprimir(elements);
+
+  validar_input(input, listaConjuntos, estado, &elements);
+
+  gdclist_imprimir(elements);
 
   printf("%u - %u\n", estado->estadoInput, estado->tipoError);
   
@@ -242,13 +279,13 @@ void interface() {
         break;
         case CrearPorExtension:
           puts("CrearPorExtension.");
-          gdclist_destruir(elements, destruir_int);
-          elements = gdclist_crear();
+          insertar_conjunto(listaConjuntos, estado, elements, Extension, len_input);
+          elements = gdclist_vaciar(elements, destruir_int);
         break;
         case CrearPorComprension:
           puts("CrearPorComprension.");
-          gdclist_destruir(elements, destruir_int);
-          elements = gdclist_crear();
+          insertar_conjunto(listaConjuntos, estado, elements, Comprension, len_input);
+          elements = gdclist_vaciar(elements, destruir_int);
         break;
         case Unir:
           puts("Unir.");
@@ -273,11 +310,12 @@ void interface() {
         estado->alias[i] = realloc(estado->alias[i], len_input);
     }
     preparar_estado(estado);
-    validar_input(input, listaConjuntos, estado, elements);
+    validar_input(input, listaConjuntos, estado, &elements);
   }
   puts("Salir");
+  imprimir_th(listaConjuntos);
   free(input);
-  free(estado);
+  destruir_estado(estado);
   gdclist_destruir(elements, destruir_int);
   // for (int i=0; i<3; i++) free(operandos[i]);
   // free(operandos);

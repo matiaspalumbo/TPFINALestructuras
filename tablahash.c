@@ -4,37 +4,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <string.h>
 
-/**
- * Casillas en la que almacenaremos los datos de la tabla hash.
- */
-typedef struct {
-  void* clave;
-  void* dato;
-  int eliminada; // 0 si es vacía, 1 si fue eliminada.
-} CasillaHash;
-
-
-/**
- * Estructura principal que representa la tabla hash.
- */
-struct _TablaHash {
-  CasillaHash* tabla;
-  unsigned numElems;
-  unsigned capacidad;
-  FuncionHash hash;
-  FuncionIgualdad iguales;
-};
+#include "gdclist.h"
+#include "sets.h"
 
 
 /**
  * Crea una nueva tabla Hash vacía, con la capacidad dada.
  */
-TablaHash* tablahash_crear(unsigned capacidad, FuncionHash hash, FuncionIgualdad iguales) {
+TablaHash* tablahash_crear(unsigned capacidad, FuncionHash hash, FuncionIgualdad iguales, FuncionDestructora destruir) {
   TablaHash* tabla = malloc(sizeof(TablaHash));
   tabla->hash = hash;
   tabla->iguales = iguales;
   tabla->capacidad = capacidad;
+  tabla->destruir = destruir;
   tabla->tabla = malloc(sizeof(CasillaHash) * capacidad);
   tabla->numElems = 0;
   for (unsigned idx = 0; idx < capacidad; ++idx) {
@@ -55,14 +39,22 @@ unsigned hash_intervalo(unsigned capacidad, unsigned idx) {
  * Inserta el dato en la tabla, asociado a la clave dada.
  */
 void tablahash_insertar(TablaHash* tabla, void* clave, void* dato) {
+  printf("clave: %s - hash: %lu\n", (char*)clave, tabla->hash(clave));
   assert(tabla->numElems < tabla->capacidad);
   if ((double)tabla->numElems/tabla->capacidad > LIM_FACTOR_CARGA)
     tablahash_redimensionar(tabla);
   unsigned idx = tabla->hash(clave) % tabla->capacidad, intervalo = hash_intervalo(tabla->capacidad, idx);
-  while (tabla->tabla[idx].clave) {
+  puts("...");
+  while (tabla->tabla[idx].clave && !tabla->iguales(tabla->tabla[idx].clave, clave)) {
+    printf("strcmp(%s,%s) = %d", (char*)(tabla->tabla[idx].clave), (char*)clave, tabla->iguales((char*)(tabla->tabla[idx].clave), (char*)clave));
     idx = idx+intervalo % tabla->capacidad;
   }
-  tabla->numElems++;
+  if (tabla->tabla[idx].clave) {
+    puts("...");
+    printf("strcmp(%s,%s) = %d", (char*)(tabla->tabla[idx].clave), (char*)clave, tabla->iguales((char*)(tabla->tabla[idx].clave), (char*)clave));
+    tabla->destruir(tabla->tabla[idx].dato);
+  } else
+    tabla->numElems++;
   tabla->tabla[idx].clave = clave;
   tabla->tabla[idx].dato = dato;
   tabla->tabla[idx].eliminada = 0;
@@ -177,7 +169,13 @@ void imprimir_th(TablaHash* th) {
   for (unsigned i = 0; i < th->capacidad; i++) {
     if (th->tabla[i].clave == NULL) puts("NULL");
     else {
-      printf("%s\n", ((char*)th->tabla[i].dato));
+      printf("%s : ", ((char*)th->tabla[i].clave)); 
+      GNodo* temp1 = ((GList)(((Set*)(th->tabla[i].dato))->set));
+      for (int it = 0; it<gdclist_longitud(((GList)(((Set*)(th->tabla[i].dato))->set))); it++) {
+        printf("%d:%d    ", ((Intervalo*)temp1->dato)->left, ((Intervalo*)temp1->dato)->right);
+      temp1 = temp1->sig;
+      }
+      puts("");
     }
   }
   printf("-------------------------------%s%s\n", (th->numElems == 1) ? "" : "-", (th->numElems > 9) ? "-" : "");

@@ -60,3 +60,7 @@ PROCESO DE VALIDACIÓN DE INPUT (ACTUALIZADO):
     2. si `s3[0] == '{'` y `s3[1]` es numérico, hacer `sscanf(s3, "{%s", s3); while (s3 no termina) sscanf(input, "%d,", agregar a set?)`
     3. si `s3[0]=='{'` y `s3[1]` es una letra, hacer `sscanf(s3, "{%s", s3); sscanf(s3, "%c : %d <= %x <= %d}", ...)`
     4. en otro caso, `sscanf(s3, "%s %c %s", alias2, operacion, alias3)` y ver que `operacion` es validod y que `alias2` y `alias3` existen.
+
+
+
+    \-\-\-\-\-\-\-\-\-\-\-\-

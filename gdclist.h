@@ -29,6 +29,8 @@ GList gdclist_crear();
 // Destruye la lista dada y, en caso de que sea necesario, el dato que guarda cada nodo.
 void gdclist_destruir(GList lista, Destruir funcion_destructora);
 
+GList gdclist_vaciar(GList lista, Destruir funcion_destructora);
+
 // Determina si la lista es vacía.
 int gdclist_es_vacia(GList lista);
 

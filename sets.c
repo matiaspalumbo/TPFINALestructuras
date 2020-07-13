@@ -24,14 +24,13 @@ Set* set_create(TipoDefinicion tipo, unsigned nElems, GList elements) {
   newSet->set = gdclist_crear();
   newSet->nElems = 0;
   printf("Useless nElems %d\n", nElems);
-  // newSet->set = malloc(sizeof(Intervalo)*nElems);
   if (tipo == Extension) {
     puts("WTF");
     elements = merge_sort(elements, compare_ints);
     puts("Sorted.");
+    gdclist_imprimir(elements);
     elements->ant->sig = NULL;
     puts("Sorted.");
-    // elements->ant = NULL;
     int left = *(int*)(elements->dato), right = left;
     puts("Sorted.");
     GNodo* temp = elements->sig;
@@ -44,25 +43,30 @@ Set* set_create(TipoDefinicion tipo, unsigned nElems, GList elements) {
       else {
         printf("agrega [%d, %d]", left, right);
         newSet->set = agregar_intervalo(newSet->set, left, right);
-        newSet->nElems++;
-        // Intervalo* intv = crear_intervalo(left, right);
-        // gdclist_agregar_final(newSet->set, intv);
+        (newSet->nElems)++;
         left = *((int*)(temp->dato));
         right = left;
       }
     }
     puts("Tried");
     newSet->set = agregar_intervalo(newSet->set, left, (left < right) ? right : left);
-    newSet->nElems++;
+    (newSet->nElems)++;
     puts("Done");
-  } else {
+  } else if (!gdclist_es_vacia(elements) || *(int*)(elements->dato) > *(int*)(elements->sig->dato)) {
     newSet->set = agregar_intervalo(newSet->set, *(int*)(elements->dato), *(int*)(elements->sig->dato));
     newSet->nElems = 1;
   }
   return newSet;
 }
 
+void destruir_intervalo(void* intv) {
+  free(intv);
+}
 
+void set_destroy(Set* set) {
+  gdclist_destruir(set->set, destruir_intervalo);
+  free(set);
+}
 
 // Set* set_create(TipoDefinicion tipo, unsigned nElems, GList elements) {
 //   puts("WTF");
