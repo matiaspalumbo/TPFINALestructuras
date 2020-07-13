@@ -60,3 +60,26 @@ PROCESO DE VALIDACIÓN DE INPUT (ACTUALIZADO):
     2. si `s3[0] == '{'` y `s3[1]` es numérico, hacer `sscanf(s3, "{%s", s3); while (s3 no termina) sscanf(input, "%d,", agregar a set?)`
     3. si `s3[0]=='{'` y `s3[1]` es una letra, hacer `sscanf(s3, "{%s", s3); sscanf(s3, "%c : %d <= %x <= %d}", ...)`
     4. en otro caso, `sscanf(s3, "%s %c %s", alias2, operacion, alias3)` y ver que `operacion` es validod y que `alias2` y `alias3` existen.
+
+
+
+    \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+
+**_NUEVA IDEA PARA SETS: ARBOLES AVL**
+
+- Un set va a estar compuesto de un árbol AVL ordenado según SOLO los extremos izquierdos
+- En el intérprete, cada vez que se inserta un elemento se fija si puede agregarse a un intervalo existente
+- Entonces, en todos los sets creados por extensión y comprensión, los nodos del árbol son disjuntos dos a dos.
+
+(La función insertar del AVL COPIA los datos pasados en el intervalo)
+
+En el interprete: 
+Se crea un intervalo buffer.
+si es por comprensión, se escanean los dos números, y si no es vacío se inserta.
+si es por extensión, se copian iterativamente los números en ambos datos del intv buffer, y se inserta en el árbol.
+
+
+
+
+
+
