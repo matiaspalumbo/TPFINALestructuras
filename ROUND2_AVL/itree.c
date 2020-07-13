@@ -108,14 +108,15 @@ void union_ints(ITNodo* nodoIntv1, Intervalo* intv2) { // Une dos intervalos que
 ITree buscar_repeticiones(ITree nodo, ITree aComparar) {
   puts("buscar_repeticiones: in");
   if (nodo) {
-    nodo = buscar_repeticiones(nodo->left, aComparar);
-    nodo = buscar_repeticiones(nodo->right, aComparar);
+    nodo->left = buscar_repeticiones(nodo->left, aComparar);
+    nodo->right = buscar_repeticiones(nodo->right, aComparar);
     if ((nodo->intv->izq <= aComparar->intv->izq && aComparar->intv->izq <= nodo->intv->der)
     || (nodo->intv->izq <= aComparar->intv->der && aComparar->intv->der <= nodo->intv->der)) {
       puts("buscar_repeticiones: BOOM");
       nodo = itree_eliminar(nodo, nodo->intv);
     }
   }
+  if (!nodo) puts("nodo NULL");
   return nodo;
 }
 
