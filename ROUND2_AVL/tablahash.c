@@ -5,9 +5,10 @@
 #include <stdio.h>
 
 #include <string.h>
+#include "itree.h"
 
-#include "gdclist.h"
-#include "sets.h"
+// #include "gdclist.h"
+// #include "sets.h"
 
 
 /**
@@ -169,13 +170,15 @@ void imprimir_th(TablaHash* th) {
   for (unsigned i = 0; i < th->capacidad; i++) {
     if (th->tabla[i].clave == NULL) puts("NULL");
     else {
-      printf("%s : ", ((char*)th->tabla[i].clave)); 
-      GNodo* temp1 = ((GList)(((Set*)(th->tabla[i].dato))->set));
-      for (int it = 0; it<gdclist_longitud(((GList)(((Set*)(th->tabla[i].dato))->set))); it++) {
-        printf("%d:%d    ", ((Intervalo*)temp1->dato)->left, ((Intervalo*)temp1->dato)->right);
-      temp1 = temp1->sig;
-      }
+      printf("%s : ", ((char*)th->tabla[i].clave));
+      itree_imprimir((ITree) (th->tabla[i].dato));
       puts("");
+      // GNodo* temp1 = ((GList)(((Set*)(th->tabla[i].dato))->set));
+      // for (int it = 0; it<gdclist_longitud(((GList)(((Set*)(th->tabla[i].dato))->set))); it++) {
+      //   printf("%d:%d    ", ((Intervalo*)temp1->dato)->left, ((Intervalo*)temp1->dato)->right);
+      // temp1 = temp1->sig;
+      // }
+      // puts("");
     }
   }
   printf("-------------------------------%s%s\n", (th->numElems == 1) ? "" : "-", (th->numElems > 9) ? "-" : "");

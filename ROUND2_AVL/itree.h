@@ -5,13 +5,13 @@
 Arboles AVL ordenados lexicográficamente. */
 
 typedef struct {
-  double izq; // Extremo izquierdo.
-  double der; // Extremo derecho.
+  int izq; // Extremo izquierdo.
+  int der; // Extremo derecho.
 } Intervalo;
 
 typedef struct _ITNodo {
   Intervalo* intv;
-  double max;
+  int max;
   int altura;
   struct _ITNodo *right;
   struct _ITNodo *left;
@@ -60,6 +60,11 @@ int itree_balance_factor(ITree nodo);
 intervalos, lo imprime. Formato: el intervalo con extremo izquierdo a 
 y extremo derecho b se imprime como "[a, b] ". */
 void imprimir_intervalo(ITree nodo);
+
+
+void itree_imprimir(ITree tree);
+
+ITree itree_union(ITree arbol1, ITree arbol2);
 
 
 #endif /* __ITREE_H__ */

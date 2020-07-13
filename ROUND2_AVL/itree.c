@@ -37,19 +37,19 @@ int itree_balance_factor(ITree nodo) {
 
 
 /* Devuelve el máximo de dos doubles. */
-double maximo(double n1, double n2) {
+int maximo(int n1, int n2) {
   return n1 < n2 ? n2 : n1;
 }
 
 
 /* Calcula la altura de un ITree luego de insertar un nodo. */
 int calcular_altura(ITree nodo) {
-  return 1 + (int) maximo(itree_altura(nodo->right), itree_altura(nodo->left));
+  return 1 + maximo(itree_altura(nodo->right), itree_altura(nodo->left));
 }
 
 
 /* Calcula el máximo extremo derecho de un ITree luego de insertar un nodo. */
-double calcular_max(ITree nodo) {
+int calcular_max(ITree nodo) {
   if (!itree_empty(nodo->left) && !itree_empty(nodo->right))
     return maximo(maximo(nodo->intv->der, nodo->left->max), nodo->right->max);
   else if (!itree_empty(nodo->left) || !itree_empty(nodo->right)) {
@@ -60,7 +60,7 @@ double calcular_max(ITree nodo) {
 }
 
 
-double comparar_intervalos(Intervalo *intv1, Intervalo *intv2) {
+int comparar_intervalos(Intervalo *intv1, Intervalo *intv2) {
   return (intv1->izq == intv2->izq) ? intv1->der - intv2->der : intv1->izq - intv2->izq;
 }
 
@@ -74,8 +74,8 @@ ITree rotacion_a_derecha(ITree nodo) {
   del nodo sobre el cual se realizó la rotación. */
   nodo->left = hijo_raiz;
   /* Se actualizan las alturas y máximos de los nodos rotados. */
-  nodo->altura = 1 + (int) maximo(itree_altura(nodo->right), itree_altura(nodo->left));
-  nuevaRaiz->altura = 1 + (int) maximo(itree_altura(nuevaRaiz->right), itree_altura(nuevaRaiz->left));
+  nodo->altura = 1 + maximo(itree_altura(nodo->right), itree_altura(nodo->left));
+  nuevaRaiz->altura = 1 + maximo(itree_altura(nuevaRaiz->right), itree_altura(nuevaRaiz->left));
   nodo->max = calcular_max(nodo);
   nuevaRaiz->max = calcular_max(nuevaRaiz);
   return nuevaRaiz;
@@ -91,13 +91,33 @@ ITree rotacion_a_izquierda(ITree nodo) {
   del nodo sobre el cual se realizó la rotación. */
   nodo->right = hijo_raiz;
   /* Se actualizan las alturas y máximos de los nodos rotados. */
-  nodo->altura = 1 + (int) maximo(itree_altura(nodo->right), (itree_altura(nodo->left)));
-  nuevaRaiz->altura = 1 + (int) maximo(itree_altura(nuevaRaiz->right), (itree_altura(nuevaRaiz->left)));
+  nodo->altura = 1 + maximo(itree_altura(nodo->right), (itree_altura(nodo->left)));
+  nuevaRaiz->altura = 1 + maximo(itree_altura(nuevaRaiz->right), (itree_altura(nuevaRaiz->left)));
   nodo->max = calcular_max(nodo);
   nuevaRaiz->max = calcular_max(nuevaRaiz);
   return nuevaRaiz;
 }
 
+void union_ints(ITNodo* nodoIntv1, Intervalo* intv2) { // Une dos intervalos que se intersecan.
+  // Intervalo* intv = malloc(sizeof(Intervalo));
+  nodoIntv1->intv->izq = (nodoIntv1->intv->izq < intv2->izq) ? nodoIntv1->intv->izq : intv2->izq;
+  nodoIntv1->intv->der = (nodoIntv1->intv->der > intv2->der) ? nodoIntv1->intv->der : intv2->der;
+  // return intv;
+}
+
+ITree buscar_repeticiones(ITree nodo, ITree aComparar) {
+  puts("buscar_repeticiones: in");
+  if (nodo) {
+    nodo = buscar_repeticiones(nodo->left, aComparar);
+    nodo = buscar_repeticiones(nodo->right, aComparar);
+    if ((nodo->intv->izq <= aComparar->intv->izq && aComparar->intv->izq <= nodo->intv->der)
+    || (nodo->intv->izq <= aComparar->intv->der && aComparar->intv->der <= nodo->intv->der)) {
+      puts("buscar_repeticiones: BOOM");
+      nodo = itree_eliminar(nodo, nodo->intv);
+    }
+  }
+  return nodo;
+}
 
 /* itree_insertar inserta un nodo en el lugar correspondiente del ITree, y luego
 realiza las rotaciones adecuadas si el árbol resultante está desbalanceado. */
@@ -113,10 +133,22 @@ ITree itree_insertar(ITree nodo, Intervalo *intv) {
     nodo->right = NULL;
     return nodo;
     } else if (comparar_intervalos(intv, nodo->intv) < 0) {
-    /* Si el intervalo a insertar es menor según el orden lexicográfico, se insertará en el subárbol izquierdo. */
+      if (intv->der+1 >= nodo->intv->izq) {
+        printf("buscar_repeticiones(nodo->left): %d:%d VS. %d:%d\n", nodo->intv->izq, nodo->intv->der, intv->izq, intv->der);
+        union_ints(nodo, intv);
+        nodo->left = buscar_repeticiones(nodo->left, nodo);
+        printf("NODO AFTER: %d:%d\n", nodo->intv->izq, nodo->intv->der);
+        return nodo;
+      }
     nodo->left = itree_insertar(nodo->left, intv);
     } else if (comparar_intervalos(intv, nodo->intv) > 0) {
-    /* Si el intervalo a insertar es mayor según el orden lexicográfico, se insertará en el subárbol derecho. */
+      if (intv->izq-1 <= nodo->intv->der) {
+        printf("buscar_repeticiones(nodo->right): %d:%d VS. %d:%d\n", nodo->intv->izq, nodo->intv->der, intv->izq, intv->der);
+        union_ints(nodo, intv);
+        nodo->right = buscar_repeticiones(nodo->right, nodo);
+        printf("NODO AFTER: %d:%d\n", nodo->intv->izq, nodo->intv->der);
+        return nodo;
+      }
     nodo->right = itree_insertar(nodo->right, intv);
   } else {
     /* Si el intervalo a insertar ya está en el árbol, no se inserta nada. */
@@ -126,7 +158,7 @@ ITree itree_insertar(ITree nodo, Intervalo *intv) {
   recursivamente en el subárbol izquierdo o derecho. Si el intervalo no está presente en el árbol, 
   la recursión desciende hasta alguna hoja del mismo donde se insertará el elemento, y luego 
   las alturas y máximos se irán actualizando desde abajo hacia arriba. */
-  nodo->altura = 1 + (int) maximo((double) itree_altura(nodo->left), (double) itree_altura(nodo->right));
+  nodo->altura = 1 + maximo(itree_altura(nodo->left), itree_altura(nodo->right));
   nodo->max = calcular_max(nodo);
   /* Se calcula el factor balance del nodo, y en caso de desbalanceo se realizan las rotaciones correspondientes. */
   int balance = itree_balance_factor(nodo);
@@ -195,7 +227,7 @@ ITree itree_eliminar(ITree nodo, Intervalo *intv) {
   if (itree_empty(nodo))
     return nodo;
   /* Se actualizan la altura y el máximo del árbol. */
-  nodo->altura = 1 + (int) maximo((double) itree_altura(nodo->left),(double) itree_altura(nodo->right));
+  nodo->altura = 1 + maximo(itree_altura(nodo->left),itree_altura(nodo->right));
   nodo->max = calcular_max(nodo);
   /* Se calcula el factor balance del árbol, y en caso de desbalanceo se realizan las rotaciones correspondientes. */
   int balance = itree_balance_factor(nodo);
@@ -244,7 +276,7 @@ ITree itree_intersecar(ITree arbol, Intervalo *intv) {
 
 
 void imprimir_intervalo(ITree nodo) {
-  if (!itree_empty(nodo)) printf("[%g, %g] ", nodo->intv->izq, nodo->intv->der);
+  if (!itree_empty(nodo)) printf("[%d, %d] ", nodo->intv->izq, nodo->intv->der);
 }
 
 
@@ -277,3 +309,46 @@ void itree_recorrer_bfs(ITree arbol, FuncionVisitante visit) {
     cola_destruir(queue);
   }
 }
+
+void itree_imprimir(ITree tree) {
+  if (tree) {
+    itree_imprimir(tree->left);
+    printf("%d:%d - ", tree->intv->izq, tree->intv->der);
+    itree_imprimir(tree->right);
+  }
+}
+
+
+ITree itree_clonar(ITree arbol){
+    if (itree_empty(arbol))
+        return NULL;
+    ITree nodo = itree_crear();
+    nodo = itree_insertar(nodo, arbol->intv);
+    nodo->left = itree_clonar(arbol->left);
+    nodo->right = itree_clonar(arbol->right);
+    /* Return root of cloned tree */
+    return nodo;
+}
+
+ITree unir_arboles(ITree resultado, ITree menorAltura) {
+  if (itree_empty(menorAltura))
+    return resultado;
+  resultado = itree_insertar(resultado, menorAltura->intv);
+  resultado = unir_arboles(resultado, menorAltura->left);
+  resultado = unir_arboles(resultado, menorAltura->right);
+  return resultado;
+}
+
+ITree itree_union(ITree arbol1, ITree arbol2) {
+  ITree menorAltura = (arbol2->altura < arbol1->altura) ? arbol2 : arbol1;
+  ITree mayorAltura = (arbol2->altura < arbol1->altura) ? arbol1 : arbol2;
+  ITree resultado = itree_clonar(mayorAltura);
+  resultado = unir_arboles(resultado, menorAltura);
+  return resultado;
+}
+
+
+
+
+
+

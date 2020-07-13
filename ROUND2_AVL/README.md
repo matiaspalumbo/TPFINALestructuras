@@ -16,6 +16,8 @@ Operaciones entre conjuntos soportadas:
 - _Resta_ de un conjunto con otro
 - _Complemento_ de un conjunto
 
+OBS: Los nombres de conjuntos no pueden comenzar con los caracteres '{' ni '~'.
+
 Impresión de conjuntos:
 
 - Los intervalos dentro de un conjunto son impresos de la forma `a:b`, donde a y b son los extremos izquierdo y derecho, respectivamente. Los elementos del conjunto son impresos separados por `,`: `-4:7, 10, 45`

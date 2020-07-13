@@ -1,8 +1,7 @@
 #ifndef __INTERPRETE_H__
 #define __INTERPRETE_H__
-// #include "itree.h"
 #include "tablahash.h"
-#include "gdclist.h"
+#include "itree.h"
 
 
 enum EstadoInput {
@@ -27,6 +26,7 @@ typedef struct {
   enum TipoError tipoError;
   char* alias[3];
   unsigned nElems;
+  ITree elements;
 } Estado;
 
 /* En los casos de Insertar, Eliminar e Intersecar, determina si los caracteres no numéricos
@@ -35,7 +35,7 @@ void validar_char(char c, Estado* estado);
 
 /* Dado el input del usuario y un puntero a un intervalo, determina si el input es válido
 y devuelve el aviso e información correspondiente. */
-void validar_input(char *input, TablaHash* conjs, Estado* estado, GList* elements);
+void validar_input(char *input, TablaHash* conjs, Estado* estado);
 
 /* Función que encapsula el comportamiento del intérprete. */
 void interface();
