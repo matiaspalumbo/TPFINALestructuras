@@ -38,7 +38,7 @@ ITree itree_eliminar(ITree nodo, Intervalo *intv);
 
 /* Determina si un intervalo se interseca con alguno de los elementos del 
 árbol y, en caso afirmativo, retorna un puntero al nodo correspondiente. */
-ITree itree_intersecar(ITree arbol, Intervalo *intv);
+int itree_intersecar(ITree arbol, Intervalo *intv, Intervalo* buffer);
 
 /* Realiza un recorrido primero en profundidad (DFS) in-order del árbol de intervalos, 
 aplicando a cada nodo la funcion visitante dada como parámetro. */
@@ -66,6 +66,13 @@ void itree_imprimir(ITree tree);
 ITree itree_union(ITree arbol1, ITree arbol2);
 
 ITree itree_complemento(ITree arbol);
+
+ITree itree_interseccion(ITree arbol1, ITree arbol2);
+
+
+typedef long (*FunGeneradora)(int); // TO DELETE
+typedef enum Numeros {Positivos, Negativos, Ambos} Numeros; // TO DELETE
+ITree itree_crear_sucesion(FunGeneradora generar, Numeros direccion, int posInicial); // TO DELETE
 
 
 #endif /* __ITREE_H__ */

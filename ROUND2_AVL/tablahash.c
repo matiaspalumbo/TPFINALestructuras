@@ -40,19 +40,19 @@ unsigned hash_intervalo(unsigned capacidad, unsigned idx) {
  * Inserta el dato en la tabla, asociado a la clave dada.
  */
 void tablahash_insertar(TablaHash* tabla, void* clave, void* dato) {
-  printf("clave: %s - hash: %lu\n", (char*)clave, tabla->hash(clave));
+  // printf("clave: %s - hash: %lu\n", (char*)clave, tabla->hash(clave));
   assert(tabla->numElems < tabla->capacidad);
   if ((double)tabla->numElems/tabla->capacidad > LIM_FACTOR_CARGA)
     tablahash_redimensionar(tabla);
   unsigned idx = tabla->hash(clave) % tabla->capacidad, intervalo = hash_intervalo(tabla->capacidad, idx);
-  puts("...");
+  // puts("...");
   while (tabla->tabla[idx].clave && !tabla->iguales(tabla->tabla[idx].clave, clave)) {
-    printf("strcmp(%s,%s) = %d", (char*)(tabla->tabla[idx].clave), (char*)clave, tabla->iguales((char*)(tabla->tabla[idx].clave), (char*)clave));
+    // printf("strcmp(%s,%s) = %d", (char*)(tabla->tabla[idx].clave), (char*)clave, tabla->iguales((char*)(tabla->tabla[idx].clave), (char*)clave));
     idx = idx+intervalo % tabla->capacidad;
   }
   if (tabla->tabla[idx].clave) {
-    puts("...");
-    printf("strcmp(%s,%s) = %d", (char*)(tabla->tabla[idx].clave), (char*)clave, tabla->iguales((char*)(tabla->tabla[idx].clave), (char*)clave));
+    // puts("...");
+    // printf("strcmp(%s,%s) = %d", (char*)(tabla->tabla[idx].clave), (char*)clave, tabla->iguales((char*)(tabla->tabla[idx].clave), (char*)clave));
     tabla->destruir(tabla->tabla[idx].dato);
   } else
     tabla->numElems++;

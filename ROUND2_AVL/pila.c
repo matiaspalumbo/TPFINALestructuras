@@ -40,7 +40,7 @@ void pila_desapilar(Pila* pila) {
 
 
 // Toma una pila y la imprime en orden.
-void pila_imprimir(Pila pila, FuncionImpresora imprimir) {
+void pila_imprimir(Pila pila, FuncionImpresoraPila imprimir) {
   PilaSNodo* temp = pila;
   for (; temp->sig != NULL; temp = temp->sig);
   PilaSNodo* toStop = temp;

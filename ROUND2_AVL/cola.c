@@ -48,7 +48,7 @@ void cola_desencolar(Cola cola) {
   free(elemAEliminar);
 }
 
-void cola_imprimir(Cola cola, FuncionImpresora imprimir) {
+void cola_imprimir(Cola cola, FuncionImpresoraCola imprimir) {
   ColaSNodo* temp = cola->ultimo;
   for (; temp->sig != NULL; temp = temp->sig);
   ColaSNodo* toStop = temp;

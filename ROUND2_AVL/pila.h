@@ -13,7 +13,7 @@ El comienzo de la lista será el elemento de la cima (el TOPE) de la pila. */
 
 typedef PilaSNodo* Pila;
 
-typedef void (*FuncionImpresora) (void* dato);
+typedef void (*FuncionImpresoraPila) (void* dato);
 
 // Crea una pila.
 Pila pila_crear();
@@ -31,7 +31,7 @@ Pila pila_apilar(Pila pila, void* dato) ;
 void pila_desapilar(Pila* pila);
 
 // Toma una pila y la imprime en orden.
-void pila_imprimir(Pila pila, FuncionImpresora imprimir);
+void pila_imprimir(Pila pila, FuncionImpresoraPila imprimir);
 
 // Libera la memoria requerida para la pila.
 void pila_destruir(Pila pila);

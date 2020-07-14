@@ -17,7 +17,7 @@ typedef struct _Cola {
 	ColaSNodo* ultimo;
 } *Cola;
 
-typedef void (*FuncionImpresora) (void* dato);
+typedef void (*FuncionImpresoraCola) (void* dato);
 
 
 // Crea una nueva cola.
@@ -36,7 +36,7 @@ void cola_encolar(Cola cola, void* dato);
 void cola_desencolar(Cola cola);
 
 // Toma una cola y la imprime en orden.
-void cola_imprimir(Cola cola, FuncionImpresora imprimir);
+void cola_imprimir(Cola cola, FuncionImpresoraCola imprimir);
 
 // Libera la memoria requerida para la cola.
 void cola_destruir(Cola cola);
