@@ -50,24 +50,6 @@ int igualesStr(void* clave1, void* clave2) {
 //     return estado;
 // }
 
-/* validar_char busca verificar si el caracter dado es el esperado en los comandos de
-Insertar, Eliminar e Intersecar. */
-void validar_operacion(char c, Estado* estado) {
-  switch(c) {
-    case '|':
-      estado->estadoInput = Unir;
-      break;
-    case '&':
-      estado->estadoInput = Intersecar;
-      break;
-    case '-':
-      estado->estadoInput = Resta;
-      break;
-    default:
-      estado->tipoError = ComandoNoValido;
-  }
-}
-
 
 void* validar_conjunto(TablaHash* listaConjuntos, char* conjunto) {
   return tablahash_buscar(listaConjuntos, conjunto);
@@ -98,11 +80,23 @@ void actualizar_estado(Estado* estado, enum EstadoInput estInput, enum TipoError
     estado->estadoInput = estInput;
   else 
     estado->tipoError = error;
+  }
+
+enum EstadoInput validar_operacion(char operacion) {
+  switch (operacion) {
+    case '-':
+      return Resta;
+    case '|':
+      return Unir;
+    default:
+      return Intersecar;
+  }
 }
 
 void imprimir(int dato) { // TO DELETE. !!! ALSO DELETE EVERYTHING RELATED TO COLAS IN THIS FILE
   printf("%d - ", dato);
 }
+
 
 void validar_input(char *input, TablaHash* conjs, Estado* estado) {
   int cond = 0;
@@ -118,75 +112,83 @@ void validar_input(char *input, TablaHash* conjs, Estado* estado) {
     printf("Entró a IMPRIMIR: %s - %s - %s\n", estado->alias[0], estado->alias[1], estado->alias[2]);
   } else if (numEscaneos == 3 && strcmp(estado->alias[1], "=") == 0) {
     printf("Entró a VER QUE MIERDA PASA: %s - %s - %s\n", estado->alias[0], estado->alias[1], estado->alias[2]);
-    switch (estado->alias[2][0]) {
-      puts("Entró al switch");
-      case '~':
-        puts("Entró a COMPLEMENTO");
-        cond = validar_conjunto(conjs, &(estado->alias[2][1])) != NULL;
-        actualizar_estado(estado, Complemento, ConjuntoInexistente, cond);
-      break;
-      case '{':
-        if (isalpha(estado->alias[2][1])) {
-          puts("Entró a CREAR POR COMPRENSION");
-          char c1, c2, c3;
-          int *par = malloc(sizeof(int)*2);
-          numEscaneos = sscanf(estado->alias[2], "{%c : %d <= %c <= %d%c", &c1, &(par[0]), &c2, &(par[1]), &c3);
-          if (numEscaneos == 5 && c1 <= c2 && c3 == '}') {
-            estado->estadoInput = CrearPorComprension;
-            Intervalo* intv = malloc(sizeof(Intervalo));
-            // for (int i = 0; i<2; i++)
-            //   estado->elements = gdclist_agregar_final(estado->elements, &(par[i]));
-            intv->izq = par[0];
-            intv->der = par[1];
-            estado->elements = itree_insertar(estado->elements, intv);
-            free(intv);
-            estado->nElems = 2;
-            // cond = numEscaneos = 5 && c1 == c2 && c3 == '}';
-            printf("CHARS: %d %d %d\n", c1, c2, c3);
-            // actualizar_estado(estado, CrearPorComprension, ComandoNoValido, cond);
-          } else estado->tipoError = ComandoNoValido;
-        } else if (isdigit(estado->alias[2][1]) || estado->alias[2][1] == 45) {
-          puts("Entró a CREAR POR EXTENSION");
-          char c = ',', buffChar;
-          // printf("buffer3: %s - i: %d - c: %c\n", estado->alias[2], numEscaneos, c);
-          numEscaneos = sscanf(estado->alias[2], "{%[^}]%c", estado->alias[2], &buffChar);
-          // printf("buffer3: %s - i: %d - c: %c\n", estado->alias[2], numEscaneos, c);
-          if (numEscaneos == 2 && buffChar == '}') {
-            numEscaneos = 3;
-            int dato;
-            estado->elements = itree_crear();
-            Intervalo* intv = malloc(sizeof(Intervalo));
-            puts("ALOOO2");
-            while (numEscaneos == 3 && c == ',') {
-              numEscaneos = sscanf(estado->alias[2], "%d%c%s", &dato, &c, estado->alias[2]);
-              if (numEscaneos > 0) {
-                intv->izq = dato;
-                intv->der = dato;
-                estado->elements = itree_insertar(estado->elements, intv);
-                // int* elem = malloc(sizeof(int));
-                // *elem = dato;
-                // estado->elements = gdclist_agregar_final(estado->elements, elem);
-                (estado->nElems)++;
-                puts("ALOOO");
-              }
+    // switch (estado->alias[2][0]) {
+      // puts("Entró al switch");
+    if (estado->alias[2][0] == '~') {
+      puts("Entró a COMPLEMENTO");
+      cond = validar_conjunto(conjs, &(estado->alias[2][1])) != NULL;
+      actualizar_estado(estado, Complemento, ConjuntoInexistente, cond);
+    } else if (estado->alias[2][0] == '{') {
+      // case '{':
+      if (isalpha(estado->alias[2][1])) {
+        puts("Entró a CREAR POR COMPRENSION");
+        char c1, c2, c3;
+        int *par = malloc(sizeof(int)*2);
+        numEscaneos = sscanf(estado->alias[2], "{%c : %d <= %c <= %d%c", &c1, &(par[0]), &c2, &(par[1]), &c3);
+        if (numEscaneos == 5 && c1 <= c2 && c3 == '}') {
+          estado->estadoInput = CrearPorComprension;
+          Intervalo* intv = malloc(sizeof(Intervalo));
+          // for (int i = 0; i<2; i++)
+          //   estado->elements = gdclist_agregar_final(estado->elements, &(par[i]));
+          intv->izq = par[0];
+          intv->der = par[1];
+          estado->elements = itree_insertar(estado->elements, intv);
+          free(intv);
+          estado->nElems = 2;
+          // cond = numEscaneos = 5 && c1 == c2 && c3 == '}';
+          printf("CHARS: %d %d %d\n", c1, c2, c3);
+          // actualizar_estado(estado, CrearPorComprension, ComandoNoValido, cond);
+        } else estado->tipoError = ComandoNoValido;
+      } else if (isdigit(estado->alias[2][1]) || estado->alias[2][1] == 45) {
+        puts("Entró a CREAR POR EXTENSION");
+        char c = ',', buffChar;
+        // printf("buffer3: %s - i: %d - c: %c\n", estado->alias[2], numEscaneos, c);
+        numEscaneos = sscanf(estado->alias[2], "{%[^}]%c", estado->alias[2], &buffChar);
+        // printf("buffer3: %s - i: %d - c: %c\n", estado->alias[2], numEscaneos, c);
+        if (numEscaneos == 2 && buffChar == '}') {
+          numEscaneos = 3;
+          int dato;
+          estado->elements = itree_crear();
+          Intervalo* intv = malloc(sizeof(Intervalo));
+          puts("ALOOO2");
+          while (numEscaneos == 3 && c == ',') {
+            numEscaneos = sscanf(estado->alias[2], "%d%c%s", &dato, &c, estado->alias[2]);
+            if (numEscaneos > 0) {
+              intv->izq = dato;
+              intv->der = dato;
+              estado->elements = itree_insertar(estado->elements, intv);
+              // int* elem = malloc(sizeof(int));
+              // *elem = dato;
+              // estado->elements = gdclist_agregar_final(estado->elements, elem);
+              (estado->nElems)++;
+              puts("ALOOO");
             }
-            // gdclist_imprimir(estado->elements);
-            printf("buffer3: %s - i: %d - c: %c\n", estado->alias[2], numEscaneos, c);
-            if (numEscaneos == 1) {
-              estado->estadoInput = CrearPorExtension;
-              itree_imprimir(estado->elements);
-            } else {
-              estado->tipoError = ComandoNoValido;
-              itree_destruir(estado->elements);
-            }
-            free(intv);
-          } else estado->tipoError = ComandoNoValido;
-          // printf("Quiere imprimir la cola: "); gdcli(estado->elements, imprimir);
-        } else
-          estado->tipoError = ComandoNoValido;
-      break;
-      default:
-        puts("Operación entre conjuntos");
+          }
+          // gdclist_imprimir(estado->elements);
+          printf("buffer3: %s - i: %d - c: %c\n", estado->alias[2], numEscaneos, c);
+          if (numEscaneos == 1) {
+            estado->estadoInput = CrearPorExtension;
+            itree_imprimir(estado->elements);
+          } else {
+            estado->tipoError = ComandoNoValido;
+            itree_destruir(estado->elements);
+          }
+          free(intv);
+        } else estado->tipoError = ComandoNoValido;
+        // printf("Quiere imprimir la cola: "); gdcli(estado->elements, imprimir);
+      } else
+        estado->tipoError = ComandoNoValido;
+    } else {
+    // default:
+      puts("Operación entre conjuntos");
+      char oper;
+
+      numEscaneos = sscanf(estado->alias[2], "%s %c %s", estado->alias[1], &oper, estado->alias[2]);
+      if (numEscaneos == 3 && (oper == '-' || oper == '|' || oper == '&')) {
+        cond = validar_conjunto(conjs, estado->alias[1]) && validar_conjunto(conjs, estado->alias[2]);
+        actualizar_estado(estado, validar_operacion(oper), ConjuntoInexistente, cond);
+      } else
+        estado->tipoError = ComandoNoValido;
     }
   } else {
     puts("error");
@@ -230,10 +232,10 @@ void destruir_int(void* n) {
   free(n);
 }
 
-void insertar_conjunto(TablaHash* conjs, Estado* estado, size_t len_input) {
+void insertar_conjunto(TablaHash* conjs, Estado* estado) {
   printf("ELEMENTOS: %u\n", estado->nElems);
   // Set* newSet = set_create(tipo, estado->nElems, estado->elements);
-  char* nombreConjunto = malloc(sizeof(char)*len_input);
+  char* nombreConjunto = malloc(sizeof(char)*(strlen(estado->alias[0])+1));
   printf("ALIAS 0 : %s\n", estado->alias[0]);
   printf("NOMBRECONJUNTO : %s\n", nombreConjunto);
   strcpy(nombreConjunto, estado->alias[0]);
@@ -303,19 +305,21 @@ void interface() {
     } else {
       switch (estado->estadoInput) {
         case Imprimir:
+          itree_imprimir(tablahash_buscar(listaConjuntos, estado->alias[1]));
           puts("Imprimir.");
         break;
         case CrearPorExtension:
           puts("CrearPorExtension.");
-          insertar_conjunto(listaConjuntos, estado, len_input);
-          // elements = gdclist_vaciar(elements, destruir_int);
+          insertar_conjunto(listaConjuntos, estado);
         break;
         case CrearPorComprension:
           puts("CrearPorComprension.");
-          insertar_conjunto(listaConjuntos, estado, len_input);
-          // elements = gdclist_vaciar(elements, destruir_int);
+          insertar_conjunto(listaConjuntos, estado);
         break;
         case Unir:
+          estado->elements = itree_union(tablahash_buscar(listaConjuntos, estado->alias[1]), 
+                                         tablahash_buscar(listaConjuntos, estado->alias[2]));
+          insertar_conjunto(listaConjuntos, estado);
           puts("Unir.");
         break;
         case Intersecar:
@@ -325,6 +329,8 @@ void interface() {
           puts("Resta.");
         break;
         case Complemento:
+          estado->elements = itree_complemento(tablahash_buscar(listaConjuntos, &(estado->alias[2][1])));
+          insertar_conjunto(listaConjuntos, estado);
           puts("Complemento.");
         break;
         default: return;

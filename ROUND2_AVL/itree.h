@@ -11,8 +11,7 @@ typedef struct {
 
 typedef struct _ITNodo {
   Intervalo* intv;
-  int max;
-  int altura;
+  int max, min, altura;
   struct _ITNodo *right;
   struct _ITNodo *left;
 } ITNodo;
@@ -65,6 +64,8 @@ void imprimir_intervalo(ITree nodo);
 void itree_imprimir(ITree tree);
 
 ITree itree_union(ITree arbol1, ITree arbol2);
+
+ITree itree_complemento(ITree arbol);
 
 
 #endif /* __ITREE_H__ */

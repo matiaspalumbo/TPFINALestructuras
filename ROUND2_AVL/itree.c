@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "itree.h"
 #include "cola.h"
+#include "limits.h"
 
 /* Archivo con la implementación de Árboles de Intervalos AVL. */
 
@@ -36,11 +37,13 @@ int itree_balance_factor(ITree nodo) {
 }
 
 
-/* Devuelve el máximo de dos doubles. */
 int maximo(int n1, int n2) {
   return n1 < n2 ? n2 : n1;
 }
 
+int minimo(int n1, int n2) {
+  return n1 < n2 ? n1 : n2;
+}
 
 /* Calcula la altura de un ITree luego de insertar un nodo. */
 int calcular_altura(ITree nodo) {
@@ -59,9 +62,21 @@ int calcular_max(ITree nodo) {
     return nodo->intv->der;
 }
 
+/* Calcula el mínimo extremo izquierdo de un ITree luego de insertar un nodo. */
+int calcular_min(ITree nodo) {
+  if (!itree_empty(nodo->left) && !itree_empty(nodo->right))
+    return minimo(nodo->intv->izq, nodo->left->min);
+  else if (!itree_empty(nodo->left) || !itree_empty(nodo->right)) {
+    ITree nodoNoNULL = (!itree_empty(nodo->left)) ? nodo->left : nodo->right;
+    return minimo(nodo->intv->izq, nodoNoNULL->min);
+  } else
+    return nodo->intv->izq;
+}
 
-int comparar_intervalos(Intervalo *intv1, Intervalo *intv2) {
-  return (intv1->izq == intv2->izq) ? intv1->der - intv2->der : intv1->izq - intv2->izq;
+
+long comparar_intervalos(Intervalo *intv1, Intervalo *intv2) {
+  return (long)intv1->izq - (long)intv2->izq;
+  // return (intv1->izq == intv2->izq) ? intv1->der - intv2->der : intv1->izq - intv2->izq;
 }
 
 
@@ -78,6 +93,8 @@ ITree rotacion_a_derecha(ITree nodo) {
   nuevaRaiz->altura = 1 + maximo(itree_altura(nuevaRaiz->right), itree_altura(nuevaRaiz->left));
   nodo->max = calcular_max(nodo);
   nuevaRaiz->max = calcular_max(nuevaRaiz);
+  nodo->min = calcular_min(nodo);
+  nuevaRaiz->min = calcular_min(nuevaRaiz);
   return nuevaRaiz;
 }
 
@@ -95,6 +112,8 @@ ITree rotacion_a_izquierda(ITree nodo) {
   nuevaRaiz->altura = 1 + maximo(itree_altura(nuevaRaiz->right), (itree_altura(nuevaRaiz->left)));
   nodo->max = calcular_max(nodo);
   nuevaRaiz->max = calcular_max(nuevaRaiz);
+  nodo->min = calcular_min(nodo);
+  nuevaRaiz->min = calcular_min(nuevaRaiz);
   return nuevaRaiz;
 }
 
@@ -123,6 +142,7 @@ ITree buscar_repeticiones(ITree nodo, ITree aComparar) {
 /* itree_insertar inserta un nodo en el lugar correspondiente del ITree, y luego
 realiza las rotaciones adecuadas si el árbol resultante está desbalanceado. */
 ITree itree_insertar(ITree nodo, Intervalo *intv) {
+  printf("Quiere insertar %d:%d\n", intv->izq, intv->der);
   if (itree_empty(nodo)) { /* Si el nodo es vacío, se debe insertar aquí. */
     nodo = malloc(sizeof(ITNodo));
     nodo->intv = malloc(sizeof(Intervalo));
@@ -130,22 +150,27 @@ ITree itree_insertar(ITree nodo, Intervalo *intv) {
     nodo->intv->der = intv->der;
     nodo->altura = 0;
     nodo->max = nodo->intv->der;
+    nodo->min = nodo->intv->izq;
     nodo->left = NULL;
     nodo->right = NULL;
     return nodo;
     } else if (comparar_intervalos(intv, nodo->intv) < 0) {
-      if (intv->der+1 >= nodo->intv->izq) {
-        printf("buscar_repeticiones(nodo->left): %d:%d VS. %d:%d\n", nodo->intv->izq, nodo->intv->der, intv->izq, intv->der);
+      if (((long)(intv->der))+1 >= nodo->intv->izq) { // se rompe con INT_MIN Y INT_MAX
+        printf("buscar_repeticiones(nodo->left): %d:%d VS. %d:%d ---- %ld\n", nodo->intv->izq, nodo->intv->der, intv->izq, intv->der, ((long)(intv->der))+1);
         union_ints(nodo, intv);
+        nodo->max = calcular_max(nodo);
+        nodo->min = calcular_min(nodo);
         nodo->left = buscar_repeticiones(nodo->left, nodo);
         printf("NODO AFTER: %d:%d\n", nodo->intv->izq, nodo->intv->der);
         return nodo;
       }
     nodo->left = itree_insertar(nodo->left, intv);
     } else if (comparar_intervalos(intv, nodo->intv) > 0) {
-      if (intv->izq-1 <= nodo->intv->der) {
+      if (((long)(intv->izq))-1 <= nodo->intv->der) {
         printf("buscar_repeticiones(nodo->right): %d:%d VS. %d:%d\n", nodo->intv->izq, nodo->intv->der, intv->izq, intv->der);
         union_ints(nodo, intv);
+        nodo->max = calcular_max(nodo);
+        nodo->min = calcular_min(nodo);
         nodo->right = buscar_repeticiones(nodo->right, nodo);
         printf("NODO AFTER: %d:%d\n", nodo->intv->izq, nodo->intv->der);
         return nodo;
@@ -161,6 +186,7 @@ ITree itree_insertar(ITree nodo, Intervalo *intv) {
   las alturas y máximos se irán actualizando desde abajo hacia arriba. */
   nodo->altura = 1 + maximo(itree_altura(nodo->left), itree_altura(nodo->right));
   nodo->max = calcular_max(nodo);
+  nodo->max = calcular_min(nodo);
   /* Se calcula el factor balance del nodo, y en caso de desbalanceo se realizan las rotaciones correspondientes. */
   int balance = itree_balance_factor(nodo);
   if (balance < -1) {
@@ -214,7 +240,7 @@ ITree itree_eliminar(ITree nodo, Intervalo *intv) {
         free(nodo);
         nodo = hijoNoNULL;
       }
-       } else if (comparar_intervalos(intv, nodo->intv) < 0) {
+    } else if (comparar_intervalos(intv, nodo->intv) < 0) {
       /* Si el intervalo a eliminar es menor según el orden lexicográfico, si está
       en el árbol estará en el subárbol izquierdo, por lo que se llama a la función
       recursivamente sobre el subárbol izquierdo. */
@@ -230,6 +256,7 @@ ITree itree_eliminar(ITree nodo, Intervalo *intv) {
   /* Se actualizan la altura y el máximo del árbol. */
   nodo->altura = 1 + maximo(itree_altura(nodo->left),itree_altura(nodo->right));
   nodo->max = calcular_max(nodo);
+  nodo->max = calcular_min(nodo);
   /* Se calcula el factor balance del árbol, y en caso de desbalanceo se realizan las rotaciones correspondientes. */
   int balance = itree_balance_factor(nodo);
   if (balance < -1) {
@@ -331,6 +358,7 @@ ITree itree_clonar(ITree arbol){
     return nodo;
 }
 
+
 ITree unir_arboles(ITree resultado, ITree menorAltura) {
   if (itree_empty(menorAltura))
     return resultado;
@@ -348,6 +376,81 @@ ITree itree_union(ITree arbol1, ITree arbol2) {
   return resultado;
 }
 
+
+ITree generar_complemento(ITree resultado, ITree nodo, Intervalo* intv) {
+  if (itree_empty(nodo))
+    return resultado;
+  if (nodo->left && nodo->left->max+1 < nodo->intv->izq) {
+    puts("generar_comp: existe nodo-left");
+    intv->izq = nodo->left->max+1;
+    intv->der = nodo->intv->izq-1;
+    resultado = itree_insertar(resultado, intv);
+    resultado = generar_complemento(resultado, nodo->left, intv);
+  }
+  if (nodo->right && nodo->right->min-1 > nodo->intv->der) {
+    puts("generar_comp: existe nodo-right");
+    intv->izq = nodo->intv->der+1;
+    intv->der = nodo->right->min-1;
+    resultado = itree_insertar(resultado, intv);
+    resultado = generar_complemento(resultado, nodo->right, intv);
+  }
+  return resultado;
+}
+
+ITree itree_complemento(ITree arbol) {
+  ITree resultado = itree_crear();
+  Intervalo* intv = malloc(sizeof(Intervalo));
+  if (itree_empty(arbol)) {
+    puts("Arbol vacío?");
+    intv->izq = INT_MIN;
+    intv->der = INT_MAX;
+    resultado = itree_insertar(resultado, intv);
+  } else {
+    if (arbol->min != INT_MIN) {
+      puts("Left side");
+      intv->izq = INT_MIN;
+      intv->der = arbol->min - 1;
+      printf("%d:%d\n", intv->izq, intv->der);
+      resultado = itree_insertar(resultado, intv);
+    }
+    if (arbol->max != INT_MAX) {
+      puts("Right side");
+      intv->izq = arbol->max + 1;
+      intv->der = INT_MAX;
+      printf("%d:%d\n", intv->izq, intv->der);
+      resultado = itree_insertar(resultado, intv);
+    }
+    printf("---- min: %d max: %d ---SEMI TERMINADDO: ", arbol->min, arbol->max); itree_imprimir(arbol);
+    printf("---- min: %d max: %d ---SEMI TERMINADDO: ", arbol->min, arbol->max); itree_imprimir(resultado);
+    puts("");
+    resultado = generar_complemento(resultado, arbol, intv);
+    printf("---- min: %d max: %d --- TERMINADDO: ", arbol->min, arbol->max); itree_imprimir(resultado);
+  }
+  free(intv);
+  return resultado;
+}
+
+// ITree generar_complemento(ITree resultado, ITree arbol, Intervalo* intv) {
+//   if (arbol) {
+//     resultado = generar_complemento(resultado, arbol->left, intv);
+//     resultado = generar_complemento(resultado, arbol->right, intv);
+//   } else {
+//     intv->izq = INT_MIN;
+//     intv->der = ();
+//   }
+//   if (!nodoAnt) {
+//     intv->izq = INT_MIN;
+//     intv->izq = INT_MIN;
+//     arbol = itree_insertar(arbol, );
+//   }
+// }
+
+// ITree itree_complemento(ITree arbol) {
+//   ITree resultado = itree_crear();
+//   Intervalo *intv = malloc(sizeof(Intervalo));
+//   resultado = generar_complemento(arbol, NULL, intv);
+//   return resultado;
+// }
 
 
 
