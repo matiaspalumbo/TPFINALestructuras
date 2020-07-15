@@ -25,16 +25,12 @@ typedef struct {
   enum EstadoInput estadoInput;
   enum TipoError tipoError;
   char* alias[3];
-  unsigned nElems;
+  // char* conjInexistente;
   ITree elements;
 } Estado;
 
-/* En los casos de Insertar, Eliminar e Intersecar, determina si los caracteres no numéricos
-son los esperados. */
-void validar_char(char c, Estado* estado);
 
-/* Dado el input del usuario y un puntero a un intervalo, determina si el input es válido
-y devuelve el aviso e información correspondiente. */
+
 void validar_input(char *input, TablaHash* conjs, Estado* estado);
 
 /* Función que encapsula el comportamiento del intérprete. */

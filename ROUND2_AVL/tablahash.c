@@ -7,8 +7,15 @@
 #include <string.h>
 #include "itree.h"
 
-// #include "gdclist.h"
-// #include "sets.h"
+
+/*
+
+La Tabla Hash posee las siguientes propiedades:
+- double hashing
+- redimensión ocasional
+- límite del factor de carga
+
+*/
 
 
 /**
@@ -31,9 +38,10 @@ TablaHash* tablahash_crear(unsigned capacidad, FuncionHash hash, FuncionIgualdad
 }
 
 
-unsigned hash_intervalo(unsigned capacidad, unsigned idx) {
-  return 1+(idx%capacidad-1);
-}
+// unsigned hash_intervalo(unsigned capacidad, unsigned idx) {
+//   // return 1+(idx%capacidad-1);
+//   return INTV_HASH_DOBLE;
+// }
 
 
 /**
@@ -44,11 +52,11 @@ void tablahash_insertar(TablaHash* tabla, void* clave, void* dato) {
   assert(tabla->numElems < tabla->capacidad);
   if ((double)tabla->numElems/tabla->capacidad > LIM_FACTOR_CARGA)
     tablahash_redimensionar(tabla);
-  unsigned idx = tabla->hash(clave) % tabla->capacidad, intervalo = hash_intervalo(tabla->capacidad, idx);
+  unsigned idx = tabla->hash(clave) % tabla->capacidad, intervalo = INTV_HASH_DOBLE;
   // puts("...");
   while (tabla->tabla[idx].clave && !tabla->iguales(tabla->tabla[idx].clave, clave)) {
     // printf("strcmp(%s,%s) = %d", (char*)(tabla->tabla[idx].clave), (char*)clave, tabla->iguales((char*)(tabla->tabla[idx].clave), (char*)clave));
-    idx = idx+intervalo % tabla->capacidad;
+    idx = (idx+intervalo) % tabla->capacidad;
   }
   if (tabla->tabla[idx].clave) {
     // puts("...");
@@ -66,7 +74,7 @@ void tablahash_insertar(TablaHash* tabla, void* clave, void* dato) {
  * Busca un elemento dado en la tabla, y retorna un puntero al mismo.
  * En caso de no existir, se retorna un puntero nulo.
  */
-void* tablahash_buscar(TablaHash* tabla, void* clave) {
+void* tablahash_buscar(TablaHash* tabla, void* clave, TipoBusqueda tipoBusqueda) {
   unsigned idx = tabla->hash(clave) % tabla->capacidad, newIdx;
   CasillaHash* spot = &(tabla->tabla[idx]);
   CasillaHash* casillaEliminada = (spot->eliminada == 1) ? spot : NULL;
@@ -94,12 +102,37 @@ void* tablahash_buscar(TablaHash* tabla, void* clave) {
       casillaEliminada->eliminada = 0;
       spot->clave = NULL;
       spot->dato = NULL;
-      return casillaEliminada->dato;
+      return (tipoBusqueda == Fetch) ? casillaEliminada->dato : casillaEliminada->clave;
     } else 
-      return spot->dato;
+      return (tipoBusqueda == Fetch) ? spot->dato : spot->clave;
   } else
     return NULL;
 }
+
+
+// int tablahash_existe(TablaHash* tabla, void* clave) {
+//   unsigned idx = tabla->hash(clave) % tabla->capacidad, newIdx;
+//   CasillaHash* spot = &(tabla->tabla[idx]);
+//   if (spot->clave && tabla->iguales(clave, spot->clave))
+//     newIdx = idx;
+//   else if (spot->eliminada == 1 || spot->clave) {
+//     unsigned intervalo = hash_intervalo(tabla->capacidad, idx);
+//     newIdx = idx+intervalo % tabla->capacidad;
+//     int terminar = 1;
+//     while (terminar && newIdx != idx) {
+//       spot = &(tabla->tabla[newIdx]);
+//       if (spot->eliminada == 1 || (spot->clave && !tabla->iguales(spot->clave, clave))) {
+//         newIdx = idx+intervalo % tabla->capacidad;
+//       } else 
+//         terminar = 0;
+//     }
+//   }
+//   if (spot->clave && tabla->iguales(clave, spot->clave)) {
+//     return 1;
+//   } else
+//     return 0;
+// }
+
 
 
 /**
@@ -111,13 +144,13 @@ void tablahash_eliminar(TablaHash* tabla, void* clave) {
   if (spot->clave && tabla->iguales(clave, spot->clave))
     newIdx = idx;
   else if (spot->eliminada == 1 || spot->clave) {
-    unsigned intervalo = hash_intervalo(tabla->capacidad, idx);
-    newIdx = idx+intervalo % tabla->capacidad;
+    // unsigned intervalo = INTV_HASH_DOBLE;
+    idx = (idx+INTV_HASH_DOBLE) % tabla->capacidad;
     int terminar = 1;
     while (terminar && newIdx != idx) {
       spot = &(tabla->tabla[newIdx]);
       if (spot->eliminada == 1 || (spot->clave && !tabla->iguales(spot->clave, clave)))
-        newIdx = idx+intervalo % tabla->capacidad;
+        newIdx = (idx+INTV_HASH_DOBLE) % tabla->capacidad;
       else 
         terminar = 0;
     }

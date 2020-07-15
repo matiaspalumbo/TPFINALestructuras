@@ -3,6 +3,7 @@
 
 
 #define LIM_FACTOR_CARGA 0.7
+#define INTV_HASH_DOBLE 7
 
 typedef unsigned long (*FuncionHash)(void* clave);
 typedef int (*FuncionIgualdad)(void *, void *);
@@ -31,14 +32,15 @@ typedef struct _TablaHash {
 
 } TablaHash;
 
-
+typedef enum _TipoBusqueda {Check, Fetch} TipoBusqueda;
 
 
 TablaHash* tablahash_crear(unsigned capacidad, FuncionHash fun, FuncionIgualdad iguales, FuncionDestructora destruir);
 
 void tablahash_insertar(TablaHash* tabla, void* clave, void* dato);
 
-void* tablahash_buscar(TablaHash* tabla, void* clave);
+// void* tablahash_buscar(TablaHash* tabla, void* clave);
+void* tablahash_buscar(TablaHash* tabla, void* clave, TipoBusqueda tipoBusqueda);
 
 void tablahash_eliminar(TablaHash* tabla, void* clave);
 

@@ -130,8 +130,9 @@ ITree buscar_repeticiones(ITree nodo, ITree aComparar) {
   if (nodo) {
     nodo->left = buscar_repeticiones(nodo->left, aComparar);
     nodo->right = buscar_repeticiones(nodo->right, aComparar);
-    if ((nodo->intv->izq <= aComparar->intv->izq && aComparar->intv->izq <= nodo->intv->der)
-    || (nodo->intv->izq <= aComparar->intv->der && aComparar->intv->der <= nodo->intv->der)) {
+    if (nodo->intv->der >= aComparar->intv->izq && nodo->intv->izq <= aComparar->intv->der) {
+    // if ((nodo->intv->izq <= aComparar->intv->izq && aComparar->intv->izq <= nodo->intv->der)
+    // || (nodo->intv->izq <= aComparar->intv->der && aComparar->intv->der <= nodo->intv->der)) {
       // puts("buscar_repeticiones: BOOM");
       nodo = itree_eliminar(nodo, nodo->intv);
     }
@@ -320,24 +321,35 @@ void itree_recorrer_bfs(ITree arbol, FuncionVisitante visit) {
   }
 }
 
-void itree_imprimir(ITree tree) {
-  if (tree) {
-    itree_imprimir(tree->left);
-    printf("%d:%d, ", tree->intv->izq, tree->intv->der);
-    itree_imprimir(tree->right);
+void imprimir_intv(void* intv) {
+  if (((Intervalo*)intv)->izq == ((Intervalo*)intv)->der) {
+    printf("%d", ((Intervalo*)intv)->izq);
+  } else {
+    printf("%d:%d", ((Intervalo*)intv)->izq, ((Intervalo*)intv)->der);
   }
 }
 
-// void imprimir_intv(void* intv) {
-//   if (((Intervalo*)intv)->izq == ((Intervalo*)intv)->der) {
-//     printf("%d", ((Intervalo*)intv)->izq);
-//   } else {
-//     printf("%d:%d", ((Intervalo*)intv)->izq, ((Intervalo*)intv)->der);
-//   }
-// }
+void itree_imprimir_aux(ITree tree, int max) {
+  if (tree) {
+    itree_imprimir_aux(tree->left, max);
+    imprimir_intv(tree->intv);
+    if (tree->intv->der != max)
+      printf(",");
+    itree_imprimir_aux(tree->right, max);
+  }
+}
+
+
+void itree_imprimir(ITree tree) {
+  if (tree)
+    itree_imprimir_aux(tree, tree->max);
+  else
+    printf("{}");
+}
+
 
 // void itree_imprimir(ITree arbol) {
-//   if (itree_empty(arbol)) {
+//   if (!itree_empty(arbol)) {
 //     Pila pila = pila_crear();
 //     ITree nodoActual = arbol;
 //     int terminar = 0;
@@ -346,7 +358,6 @@ void itree_imprimir(ITree tree) {
 //         pila = pila_apilar(pila, nodoActual);
 //         nodoActual = nodoActual->left;
 //       }
-//       pila_imprimir(pila, imprimir_intv);
 //       nodoActual = pila_ultimo(pila);
 //       pila_desapilar(&pila);
 //       imprimir_intv(nodoActual->intv);
@@ -361,7 +372,7 @@ void itree_imprimir(ITree tree) {
 // }
 
 
-ITree itree_clonar(ITree arbol){
+ITree itree_clonar(ITree arbol) {
     if (itree_empty(arbol))
         return NULL;
     ITree nodo = itree_crear();
@@ -383,6 +394,10 @@ ITree unir_arboles(ITree resultado, ITree menorAltura) {
 }
 
 ITree itree_union(ITree arbol1, ITree arbol2) {
+  if (itree_empty(arbol1) || itree_empty(arbol2)) {
+    ITree resultado = itree_clonar((itree_empty(arbol1)) ? arbol2 : arbol1);
+    return resultado;
+  }
   ITree menorAltura = (arbol2->altura < arbol1->altura) ? arbol2 : arbol1;
   ITree mayorAltura = (arbol2->altura < arbol1->altura) ? arbol1 : arbol2;
   ITree resultado = itree_clonar(mayorAltura);
@@ -446,18 +461,19 @@ ITree itree_complemento(ITree arbol) {
 
 int itree_intersecar(ITree arbol, Intervalo *intv, Intervalo* buffer) {
   if (!itree_empty(arbol)) {
+    printf("itree_intersecar: %d:%d\n", intv->izq, intv->der);
     if (intv->der < arbol->intv->izq || intv->izq > arbol->intv->der) { /* El intervalo no se interseca con la raíz. */
       /* Si su subárbol izquierdo es no vacío y si el máximo del subárbol izquierdo es mayor o igual 
       al extremo izquierdo del intervalo, entonces es seguro que habrá intersección en ese subárbol. (*) */
-      if (!itree_empty(arbol->left) && intv->izq <= arbol->left->max)
+      if (!itree_empty(arbol->left) && intv->izq <= arbol->left->max && intv->der >= arbol->left->min)
         return itree_intersecar(arbol->left, intv, buffer);
       /* (Si intv->izq es mayor que el ext. derecho de la raíz) Si su subárbol derecho es no vacío y si el máximo 
       del subárbol derecho es mayor o igual a intv->izq, entonces es posible que haya intersección en ese subárbol. */
-      else if (intv->izq > arbol->intv->der && !itree_empty(arbol->right) && intv->izq <= arbol->right->max)
+      else if (intv->izq > arbol->intv->der && !itree_empty(arbol->right) && intv->izq <= arbol->right->max && intv->der >= arbol->right->min)
         return itree_intersecar(arbol->right, intv, buffer);
       else 
         return 0;
-    } else {// En caso contrario, se interseca con el intervalo de la raíz.
+    } else { // En caso contrario, se interseca con el intervalo de la raíz.
       buffer->izq = (arbol->intv->izq > intv->izq) ? arbol->intv->izq : intv->izq;
       buffer->der = (arbol->intv->der < intv->der) ? arbol->intv->der : intv->der;
       return 1;
@@ -470,8 +486,10 @@ int itree_intersecar(ITree arbol, Intervalo *intv, Intervalo* buffer) {
 ITree generar_interseccion(ITree resultado, ITree menorRango, ITree mayorRango, Intervalo* intv) {
   if (itree_empty(mayorRango))
     return resultado;
+  printf("generar intersección: %d:%d\n", mayorRango->intv->izq, mayorRango->intv->der);
   if (itree_intersecar(menorRango, mayorRango->intv, intv)) {
-    printf("Intersección entre %d:%d y %d:%d -> %d:%d\n", mayorRango->intv->izq, mayorRango->intv->der, menorRango->intv->izq, menorRango->intv->der, intv->izq, intv->der);
+    itree_imprimir(menorRango);
+    printf("Intersección entre %d:%d y %d:%d -> %d:%d\n", menorRango->intv->izq, menorRango->intv->der, mayorRango->intv->izq, mayorRango->intv->der, intv->izq, intv->der);
     resultado = itree_insertar(resultado, intv);
   }
   resultado = generar_interseccion(resultado, menorRango, mayorRango->left, intv);
@@ -485,6 +503,7 @@ ITree itree_interseccion(ITree arbol1, ITree arbol2) {
     return NULL;
   ITree menorRango = ((long)(arbol1->max) - arbol1->min > (long)(arbol2->max) - arbol2->min) ? arbol2 : arbol1;
   ITree mayorRango = ((long)(arbol1->max) - arbol1->min > (long)(arbol2->max) - arbol2->min) ? arbol1 : arbol2;
+  printf("Intersecar 1. "); itree_imprimir(menorRango); printf("con 2. "); itree_imprimir(mayorRango); puts("");
   // printf("Mayor rango min: %d - max: %d\n", mayorRango->min, mayorRango->max); 
   // printf("Menor rango min: %d - max: %d\n", menorRango->min, menorRango->max); 
   // printf("Mayor rango: "); itree_imprimir(mayorRango); puts("");
@@ -496,6 +515,15 @@ ITree itree_interseccion(ITree arbol1, ITree arbol2) {
   free(intv);
   return resultado;
 }
+
+// resultado = arbol1 - arbol2
+ITree itree_resta(ITree arbol1, ITree arbol2) {
+  ITree resultado = itree_crear();
+  resultado = itree_complemento(arbol2);
+  resultado = itree_interseccion(arbol1, resultado);
+  return resultado;
+}
+
 
 
 // TO DELETE

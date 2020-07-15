@@ -69,6 +69,10 @@ ITree itree_complemento(ITree arbol);
 
 ITree itree_interseccion(ITree arbol1, ITree arbol2);
 
+ITree itree_clonar(ITree arbol);
+
+ITree itree_resta(ITree arbol1, ITree arbol2);
+
 
 typedef long (*FunGeneradora)(int); // TO DELETE
 typedef enum Numeros {Positivos, Negativos, Ambos} Numeros; // TO DELETE
