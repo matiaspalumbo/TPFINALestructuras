@@ -1,13 +1,11 @@
 #include "tablahash.h"
 #include "pila.h"
-#include <assert.h>
-#include <stdlib.h>
 #include <stdio.h>
-
-#include <string.h>
-#include "itree.h"
+#include <stdlib.h>
 
 
+// #include <string.h>
+#include "set.h" // TO DELETE
 /*
 
 La Tabla Hash posee las siguientes propiedades:
@@ -21,12 +19,13 @@ La Tabla Hash posee las siguientes propiedades:
 /**
  * Crea una nueva tabla Hash vacía, con la capacidad dada.
  */
-TablaHash* tablahash_crear(unsigned capacidad, FuncionHash hash, FuncionIgualdad iguales, FuncionDestructora destruir) {
+TablaHash* tablahash_crear(unsigned capacidad, FuncionHash hash, FuncionIgualdad iguales, FuncionDestructora destClaves, FuncionDestructora destDatos) {
   TablaHash* tabla = malloc(sizeof(TablaHash));
   tabla->hash = hash;
   tabla->iguales = iguales;
   tabla->capacidad = capacidad;
-  tabla->destruir = destruir;
+  tabla->destClaves = destClaves;
+  tabla->destDatos = destDatos;
   tabla->tabla = malloc(sizeof(CasillaHash) * capacidad);
   tabla->numElems = 0;
   for (unsigned idx = 0; idx < capacidad; ++idx) {
@@ -48,20 +47,14 @@ TablaHash* tablahash_crear(unsigned capacidad, FuncionHash hash, FuncionIgualdad
  * Inserta el dato en la tabla, asociado a la clave dada.
  */
 void tablahash_insertar(TablaHash* tabla, void* clave, void* dato) {
-  // printf("clave: %s - hash: %lu\n", (char*)clave, tabla->hash(clave));
-  assert(tabla->numElems < tabla->capacidad);
   if ((double)tabla->numElems/tabla->capacidad > LIM_FACTOR_CARGA)
     tablahash_redimensionar(tabla);
   unsigned idx = tabla->hash(clave) % tabla->capacidad, intervalo = INTV_HASH_DOBLE;
-  // puts("...");
   while (tabla->tabla[idx].clave && !tabla->iguales(tabla->tabla[idx].clave, clave)) {
-    // printf("strcmp(%s,%s) = %d", (char*)(tabla->tabla[idx].clave), (char*)clave, tabla->iguales((char*)(tabla->tabla[idx].clave), (char*)clave));
     idx = (idx+intervalo) % tabla->capacidad;
   }
-  if (tabla->tabla[idx].clave) {
-    // puts("...");
-    // printf("strcmp(%s,%s) = %d", (char*)(tabla->tabla[idx].clave), (char*)clave, tabla->iguales((char*)(tabla->tabla[idx].clave), (char*)clave));
-    tabla->destruir(tabla->tabla[idx].dato);
+  if (tabla->tabla[idx].clave && tabla->destDatos) {
+    tabla->destDatos(tabla->tabla[idx].dato);
   } else
     tabla->numElems++;
   tabla->tabla[idx].clave = clave;
@@ -81,7 +74,7 @@ void* tablahash_buscar(TablaHash* tabla, void* clave, TipoBusqueda tipoBusqueda)
   if (spot->clave && tabla->iguales(clave, spot->clave))
     newIdx = idx;
   else if (spot->eliminada == 1 || spot->clave) {
-    unsigned intervalo = hash_intervalo(tabla->capacidad, idx);
+    unsigned intervalo = INTV_HASH_DOBLE;
     newIdx = idx+intervalo % tabla->capacidad;
     int terminar = 1;
     while (terminar && newIdx != idx) {
@@ -110,56 +103,39 @@ void* tablahash_buscar(TablaHash* tabla, void* clave, TipoBusqueda tipoBusqueda)
 }
 
 
-// int tablahash_existe(TablaHash* tabla, void* clave) {
-//   unsigned idx = tabla->hash(clave) % tabla->capacidad, newIdx;
-//   CasillaHash* spot = &(tabla->tabla[idx]);
-//   if (spot->clave && tabla->iguales(clave, spot->clave))
-//     newIdx = idx;
-//   else if (spot->eliminada == 1 || spot->clave) {
-//     unsigned intervalo = hash_intervalo(tabla->capacidad, idx);
-//     newIdx = idx+intervalo % tabla->capacidad;
-//     int terminar = 1;
-//     while (terminar && newIdx != idx) {
-//       spot = &(tabla->tabla[newIdx]);
-//       if (spot->eliminada == 1 || (spot->clave && !tabla->iguales(spot->clave, clave))) {
-//         newIdx = idx+intervalo % tabla->capacidad;
-//       } else 
-//         terminar = 0;
-//     }
-//   }
-//   if (spot->clave && tabla->iguales(clave, spot->clave)) {
-//     return 1;
-//   } else
-//     return 0;
-// }
-
-
+void eliminar_casilla(TablaHash* tabla, unsigned idx) {
+  if (tabla->destClaves)
+    tabla->destClaves(tabla->tabla[idx].clave);
+  else
+    tabla->tabla[idx].clave = NULL;
+  if (tabla->destDatos)
+    tabla->destDatos(tabla->tabla[idx].dato);
+  else
+    tabla->tabla[idx].dato = NULL;
+  tabla->tabla[idx].eliminada = 1;
+  tabla->numElems--;
+}
 
 /**
  * Elimina un elemento de la tabla.
  */
 void tablahash_eliminar(TablaHash* tabla, void* clave) {
-  unsigned idx = tabla->hash(clave) % tabla->capacidad, newIdx;
+  unsigned idx = tabla->hash(clave) % tabla->capacidad;
   CasillaHash* spot = &(tabla->tabla[idx]);
   if (spot->clave && tabla->iguales(clave, spot->clave))
-    newIdx = idx;
+    eliminar_casilla(tabla, idx);
   else if (spot->eliminada == 1 || spot->clave) {
-    // unsigned intervalo = INTV_HASH_DOBLE;
-    idx = (idx+INTV_HASH_DOBLE) % tabla->capacidad;
-    int terminar = 1;
-    while (terminar && newIdx != idx) {
+    unsigned newIdx = (idx+INTV_HASH_DOBLE) % tabla->capacidad;
+    while (newIdx != idx) {
       spot = &(tabla->tabla[newIdx]);
       if (spot->eliminada == 1 || (spot->clave && !tabla->iguales(spot->clave, clave)))
         newIdx = (idx+INTV_HASH_DOBLE) % tabla->capacidad;
-      else 
-        terminar = 0;
+      else {
+        idx = newIdx;
+      }
     }
-  }
-  if (spot->clave && tabla->iguales(clave, spot->clave)) {
-    spot->clave = NULL;
-    spot->dato = NULL;
-    spot->eliminada = 1;
-    tabla->numElems--;
+    if (spot->clave && tabla->iguales(clave, spot->clave))
+      eliminar_casilla(tabla, idx);
   }
 }
 
@@ -193,6 +169,15 @@ void tablahash_redimensionar(TablaHash* tabla) {
  * Destruye la tabla.
  */
 void tablahash_destruir(TablaHash* tabla) {
+  int hayDestClaves = tabla->destClaves != NULL;
+  int hayDestDatos = tabla->destDatos != NULL;
+  for (unsigned i=0; i<tabla->capacidad; i++) {
+    if (tabla->tabla[i].clave != NULL && hayDestClaves) {
+      tabla->destClaves(tabla->tabla[i].clave);
+      if (hayDestDatos)
+        tabla->destDatos(tabla->tabla[i].dato);
+    }
+  }
   free(tabla->tabla);
   free(tabla);
 }
@@ -204,7 +189,7 @@ void imprimir_th(TablaHash* th) {
     if (th->tabla[i].clave == NULL) puts("NULL");
     else {
       printf("%s : ", ((char*)th->tabla[i].clave));
-      itree_imprimir((ITree) (th->tabla[i].dato));
+      set_imprimir((Set) (th->tabla[i].dato));
       puts("");
       // GNodo* temp1 = ((GList)(((Set*)(th->tabla[i].dato))->set));
       // for (int it = 0; it<gdclist_longitud(((GList)(((Set*)(th->tabla[i].dato))->set))); it++) {

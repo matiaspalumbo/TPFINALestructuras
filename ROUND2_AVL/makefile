@@ -3,8 +3,7 @@
 # Macros.
 PILA = pila.c
 COLA = cola.c
-SETS = sets.c
-ITREE = itree.c
+SET = set.c
 ALGORITMOS = algoritmos.c
 GDCLIST = gdclist.c
 INTERPRETE = interprete.c
@@ -13,7 +12,7 @@ FLAGS = -Wall -Wextra -Werror -std=c99 -g
 
 # CAMBIAAAAR
 # Ejecutable del Interprete.
-interprete : main.c $(COLA:.c=.o) $(PILA:.c=.o) $(INTERPRETE:.c=.o) $(TABLAHASH:.c=.o) $(ITREE:.c=.o) # $(SETS:.c=.o)
+interprete : main.c $(COLA:.c=.o) $(PILA:.c=.o) $(INTERPRETE:.c=.o) $(TABLAHASH:.c=.o) $(SET:.c=.o)
 	gcc $(FLAGS) -o $@ $^
 
 # Archivo objeto del Interprete.
@@ -24,13 +23,10 @@ $(INTERPRETE:.c=.o) : $(INTERPRETE) $(INTERPRETE:.c=.h) $(TABLAHASH:.c=.h)
 $(TABLAHASH:.c=.o) : $(TABLAHASH) $(TABLAHASH:.c=.h) $(PILA:.c=.h)
 	gcc $(FLAGS) -c $(TABLAHASH)
 
-# Archivo objeto de la implementación de Listas Circulares Doblemente Enlazadas.
-$(ITREE:.c=.o) : $(ITREE) $(ITREE:.c=.h)
-	gcc $(FLAGS) -c $(ITREE)
 
-# # Archivo objeto de la implementación de Sets.
-# $(SETS:.c=.o) : $(SETS) $(SETS:.c=.h)
-# 	gcc $(FLAGS) -c $(SETS)
+$(SET:.c=.o) : $(SET) $(SET:.c=.h)
+	gcc $(FLAGS) -c $(SET)
+
 
 # Archivo objeto de la implementación de Colas.
 $(COLA:.c=.o) : $(COLA) $(COLA:.c=.h)

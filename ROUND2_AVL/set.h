@@ -1,5 +1,5 @@
-#ifndef __ITREE_H__
-#define __ITREE_H__
+#ifndef __SET_H__
+#define __SET_H__
 
 /* Archivo de cabecera de la implementación de Árboles de Intervalos utilizando 
 Arboles AVL ordenados lexicográficamente. */
@@ -9,74 +9,78 @@ typedef struct {
   int der; // Extremo derecho.
 } Intervalo;
 
-typedef struct _ITNodo {
+typedef struct _SetNodo {
   Intervalo* intv;
   int max, min, altura;
-  struct _ITNodo *right;
-  struct _ITNodo *left;
-} ITNodo;
+  struct _SetNodo *right;
+  struct _SetNodo *left;
+} SetNodo;
 
-typedef ITNodo* ITree;
+typedef SetNodo* Set;
 
-typedef void (*FuncionVisitante) (ITree arbol);
+typedef void (*FuncionVisitante) (Set arbol);
 
 
 /* Crea un árbol de intervalos vacío. */
-ITree itree_crear();
+Set set_crear();
 
 /* Destruye un árbol de intervalos. */
-void itree_destruir(ITree nodo);
+void set_destruir(Set nodo);
 
 /* Indica si el árbol es vacío.*/
-int itree_empty(ITree nodo);
+int set_empty(Set nodo);
 
 /* Inserta un elemento en un árbol de intervalos. */
-ITree itree_insertar(ITree arbol, Intervalo *intv);
+Set set_insertar(Set arbol, Intervalo *intv);
 
 /* Elimina un elemento de un árbol de intervalos. */
-ITree itree_eliminar(ITree nodo, Intervalo *intv);
+Set set_eliminar(Set nodo, Intervalo *intv);
 
 /* Determina si un intervalo se interseca con alguno de los elementos del 
 árbol y, en caso afirmativo, retorna un puntero al nodo correspondiente. */
-int itree_intersecar(ITree arbol, Intervalo *intv, Intervalo* buffer);
+int set_intersecar(Set arbol, Intervalo *intv, Intervalo* buffer);
 
 /* Realiza un recorrido primero en profundidad (DFS) in-order del árbol de intervalos, 
 aplicando a cada nodo la funcion visitante dada como parámetro. */
-void itree_recorrer_dfs(ITree arbol, FuncionVisitante visit);
+void set_recorrer_dfs(Set arbol, FuncionVisitante visit);
 
 /* Realiza un recorrido primero a lo ancho (BFS) del árbol de intervalos, 
 aplicando a cada nodo la funcion visitante dada como parámetro. */
-void itree_recorrer_bfs(ITree arbol, FuncionVisitante visit);
+void set_recorrer_bfs(Set arbol, FuncionVisitante visit);
 
-/* Devuelve la altura del ITree dado como parámetro.*/
-int itree_altura(ITree nodo) ;
 
-/* Devuelve factor de balance del ITree dado como parámetro,
-restando las alturas de sus subárboles izquierdo y derecho. */
-int itree_balance_factor(ITree nodo);
+
+// /* Devuelve la altura del Set dado como parámetro.*/
+// int itree_altura(Set nodo) ;
+
+// /* Devuelve factor de balance del Set dado como parámetro,
+// restando las alturas de sus subárboles izquierdo y derecho. */
+// int set_balance_factor(Set nodo);
+
+
 
 /* Función de tipo FuncionVisitante que dado un elemento de un arbol de 
 intervalos, lo imprime. Formato: el intervalo con extremo izquierdo a 
 y extremo derecho b se imprime como "[a, b] ". */
-void imprimir_intervalo(ITree nodo);
+void imprimir_intervalo(Set nodo);
 
 
-void itree_imprimir(ITree tree);
+void set_imprimir(Set tree);
 
-ITree itree_union(ITree arbol1, ITree arbol2);
+Set set_union(Set arbol1, Set arbol2);
 
-ITree itree_complemento(ITree arbol);
+Set set_complemento(Set arbol);
 
-ITree itree_interseccion(ITree arbol1, ITree arbol2);
+Set set_interseccion(Set arbol1, Set arbol2);
 
-ITree itree_clonar(ITree arbol);
+Set set_clonar(Set arbol);
 
-ITree itree_resta(ITree arbol1, ITree arbol2);
+Set set_resta(Set arbol1, Set arbol2);
 
 
 typedef long (*FunGeneradora)(int); // TO DELETE
 typedef enum Numeros {Positivos, Negativos, Ambos} Numeros; // TO DELETE
-ITree itree_crear_sucesion(FunGeneradora generar, Numeros direccion, int posInicial); // TO DELETE
+Set set_crear_sucesion(FunGeneradora generar, Numeros direccion, int posInicial); // TO DELETE
 
 
-#endif /* __ITREE_H__ */
+#endif /* __SET_H__ */

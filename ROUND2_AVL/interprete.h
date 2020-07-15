@@ -1,7 +1,7 @@
 #ifndef __INTERPRETE_H__
 #define __INTERPRETE_H__
 #include "tablahash.h"
-#include "itree.h"
+#include "set.h"
 
 
 enum EstadoInput {
@@ -26,12 +26,12 @@ typedef struct {
   enum TipoError tipoError;
   char* alias[3];
   // char* conjInexistente;
-  ITree elements;
+  Set elements;
 } Estado;
 
 
 
-void validar_input(char *input, TablaHash* conjs, Estado* estado);
+void validar_input(TablaHash* conjs, Estado* estado);
 
 /* Función que encapsula el comportamiento del intérprete. */
 void interface();

@@ -12,7 +12,6 @@
 
 
 
-
 unsigned long hashStrings(void* str) {
   char* toHash = (char*)str;
   unsigned long hash = 1297; // Primo arbitrario
@@ -37,12 +36,13 @@ void* validar_conjunto(TablaHash* listaConjuntos, char* conjunto) {
 }
 
 
-void actualizar_estado(Estado* estado, enum EstadoInput estInput, enum TipoError error, int condicion) {
+void actualizar_estado(Estado* estado, enum EstadoInput estadoInput, enum TipoError error, int condicion) {
   if (condicion) 
-    estado->estadoInput = estInput;
+    estado->estadoInput = estadoInput;
   else 
     estado->tipoError = error;
-  }
+}
+
 
 enum EstadoInput validar_operacion(char operacion) {
   switch (operacion) {
@@ -56,8 +56,12 @@ enum EstadoInput validar_operacion(char operacion) {
 }
 
 
-void validar_input(char *input, TablaHash* conjs, Estado* estado) {
-  int numEscaneos = sscanf(input, "%s %s %[^\n]\n", estado->alias[0], estado->alias[1], estado->alias[2]);
+void validar_input(TablaHash* conjs, Estado* estado) {
+  printf("0: %s\n1: %s\n2: %s\n", estado->alias[0], estado->alias[1], estado->alias[2]);
+  // char* input = malloc(sizeof(char)*DEFAULT_STR_SIZE);
+  // strcpy(input, estado->alias[0]);
+  int numEscaneos = sscanf(estado->alias[2], "%s %s %[^\n]\n", estado->alias[0], estado->alias[1], estado->alias[2]);
+  printf("0: %s\n1: %s\n2: %s\n", estado->alias[0], estado->alias[1], estado->alias[2]);
   if (numEscaneos == 1 && strcmp(estado->alias[0], "salir") == 0) { // SALIR
     estado->estadoInput = Salir;
   } else if (numEscaneos == 2 && strcmp(estado->alias[0], "imprimir") == 0) { // IMPRIMIR
@@ -69,12 +73,10 @@ void validar_input(char *input, TablaHash* conjs, Estado* estado) {
       actualizar_estado(estado, Complemento, ConjuntoInexistente, cond);
     } else if (estado->alias[2][0] == '{') { // CREACION
       if (isalpha(estado->alias[2][1]) || estado->alias[2][1] == '}') { // POR COMPRENSION
-        char c1, space;
-        char c2, c3, c4;
+        char c1, c2, c3, c4, space;
         int *par = malloc(sizeof(int)*2);
         numEscaneos = sscanf(estado->alias[2], "{%c%c: %d <= %c <= %d%c%c", &c1, &space, &(par[0]), &c2, &(par[1]), &c3, &c4);
         if (numEscaneos == 1 && c1 == '}') {
-          // estado->elements = NULL;
           estado->estadoInput = CrearPorComprension;
         } else if (numEscaneos == 6 && c1 == c2 && space == ' ' && c3 == '}') {
           estado->estadoInput = CrearPorComprension;
@@ -82,9 +84,8 @@ void validar_input(char *input, TablaHash* conjs, Estado* estado) {
             Intervalo* intv = malloc(sizeof(Intervalo));
             intv->izq = par[0];
             intv->der = par[1];
-            estado->elements = itree_insertar(estado->elements, intv);
+            estado->elements = set_insertar(estado->elements, intv);
             free(intv);
-            // estado->nElems = 2;
           }
         } else
           estado->tipoError = ComandoNoValido;
@@ -95,23 +96,21 @@ void validar_input(char *input, TablaHash* conjs, Estado* estado) {
           numEscaneos = 3;
           char c = ',';
           int dato;
-          estado->elements = itree_crear();
+          estado->elements = set_crear();
           Intervalo* intv = malloc(sizeof(Intervalo));
           while (numEscaneos == 3 && c == ',') {
             numEscaneos = sscanf(estado->alias[2], "%d%c%s", &dato, &c, estado->alias[2]);
-            // printf("numEscaneos: %d --- c: %c --- estado->alias[2]: %s\n", numEscaneos, c, estado->alias[2]);
             if (numEscaneos > 0) {
               intv->izq = dato;
               intv->der = dato;
-              estado->elements = itree_insertar(estado->elements, intv);
-              // (estado->nElems)++;
+              estado->elements = set_insertar(estado->elements, intv);
             }
           }
           if (numEscaneos == 1) {
             estado->estadoInput = CrearPorExtension;
           } else {
             estado->tipoError = ComandoNoValido;
-            itree_destruir(estado->elements);
+            set_destruir(estado->elements);
           }
           free(intv);
         } else
@@ -126,7 +125,7 @@ void validar_input(char *input, TablaHash* conjs, Estado* estado) {
         actualizar_estado(estado, validar_operacion(oper), ConjuntoInexistente, cond);
       } else if (numEscaneos == 1) { // IGUALACIÓN DE CONJUNTOS
         if (validar_conjunto(conjs, estado->alias[1])) {
-          estado->elements = itree_clonar(tablahash_buscar(conjs, estado->alias[1], Fetch));
+          estado->elements = set_clonar(tablahash_buscar(conjs, estado->alias[1], Fetch));
           estado->estadoInput = CrearPorExtension;
         } else 
           estado->tipoError = ConjuntoInexistente;
@@ -136,22 +135,18 @@ void validar_input(char *input, TablaHash* conjs, Estado* estado) {
   } else {
     estado->tipoError = ComandoNoValido;
   }
-  // printf("0: %s\n1: %s\n2: %s\n", estado->alias[0], estado->alias[1], estado->alias[2]);
+  printf("0: %s\n1: %s\n2: %s\n", estado->alias[0], estado->alias[1], estado->alias[2]);
 }
 
 
 void preparar_estado(Estado* estado) {
   estado->tipoError = NoError;
   estado->estadoInput = Imprimir;
-  estado->alias[0][0] = '\0';
-  estado->alias[1][0] = '\0';
-  estado->alias[2][0] = '\0';
-  // estado->nElems = 0;
   estado->elements = NULL;
 }
 
 
-size_t get_input(char** input) {
+void get_input(Estado* estado) {
   // puts("entró a get_input");
   char c = fgetc(stdin);
   size_t len_input = DEFAULT_STR_SIZE;
@@ -159,16 +154,14 @@ size_t get_input(char** input) {
   for (; c != '\n'; i++) {
     if (i == len_input-2) {
       len_input *= INPUT_GROWTH_RATE;
-      // puts("Reallocating input");
-      *input = realloc(*input, sizeof(char)*len_input);
+      for (int i=0; i<3; i++)
+        estado->alias[i] = realloc(estado->alias[i], sizeof(char)*len_input);
     }
-    (*input)[i] = c;
+    estado->alias[2][i] = c;
     c = fgetc(stdin);
   }
-  (*input)[i] = '\n';
-  (*input)[i+1] = '\0';
-  // puts("successfuly salió de get_input");
-  return len_input;
+  estado->alias[2][i] = '\n';
+  estado->alias[2][i+1] = '\0';
 }
 
 void destruir_int(void* n) {
@@ -196,15 +189,15 @@ void destruir_estado(Estado* estado) {
   free(estado);
 }
 
-// void destruir_set(void* set) {
-//   set_destroy((Set*)set);
-// }
-
 //   MEJORAR MANEJO DE LA MEMORIA
 
 
 void destruir_set(void* set) {
-  itree_destruir((ITree) set);
+  set_destruir((Set) set);
+}
+
+void destruir_alias(void* alias) {
+  free(alias);
 }
 
 // long generar1(int elem) {
@@ -212,7 +205,7 @@ void destruir_set(void* set) {
 // }
 
 
-typedef ITree (*OperacionBinaria)(ITree, ITree);
+typedef Set (*OperacionBinaria)(Set, Set);
 
 void calcular_operacion(TablaHash* tabla, Estado* estado, OperacionBinaria operacion) {
   estado->elements = operacion(
@@ -223,70 +216,74 @@ void calcular_operacion(TablaHash* tabla, Estado* estado, OperacionBinaria opera
 OperacionBinaria generar_operacion(enum EstadoInput estadoInput) {
   switch (estadoInput) {
     case Unir:
-      return itree_union;
+      return set_union;
     case Intersecar:
-      return itree_interseccion;
+      return set_interseccion;
     default:
-      return itree_resta;
+      return set_resta;
   }
 }
 
 
 /* La función interface recibe input mientras no se desee salir del intérprete
-y realiza las acciones correspondientes sobre el ITree creado. */
+y realiza las acciones correspondientes sobre el Set creado. */
 void interface() {
-  char* input = malloc(sizeof(char)*DEFAULT_STR_SIZE);
+  // char* input = malloc(sizeof(char)*DEFAULT_STR_SIZE);
   // puts("entro a interface");
-  size_t len_input = get_input(&input); // fix this, probably don't need the ampersand
-  size_t len_input2;
   // puts("successfully got input");
-  TablaHash* listaConjuntos = tablahash_crear(HASH_TABLE_DEF_SIZE, hashStrings, igualesStr, destruir_set);
+  TablaHash* listaConjuntos = tablahash_crear(HASH_TABLE_DEF_SIZE, hashStrings, igualesStr, destruir_alias, destruir_set);
 
   Estado *estado = malloc(sizeof(Estado));
   for (int i=0; i<3; ++i) {
     // puts("Allocating aliases");
-    estado->alias[i] = malloc(sizeof(char)*len_input);
+    estado->alias[i] = malloc(sizeof(char)*DEFAULT_STR_SIZE);
   }
+  printf("Estado->alias[0] antes de todo: %s", estado->alias[0]);
+  get_input(estado);
+  printf("Estado->alias[0] despues de get_input: %s", estado->alias[0]);
   preparar_estado(estado);
-  validar_input(input, listaConjuntos, estado);
+  printf("Estado->alias[0] despues de preparar: %s", estado->alias[0]);
+  // size_t len_input2;
+  validar_input(listaConjuntos, estado);
   while (estado->estadoInput != Salir) {
     if (estado->tipoError == ComandoNoValido) {
       puts("Comando no válido.");
     } else if (estado->tipoError == ConjuntoInexistente) {
       puts("No se pueden realizar operaciones sobre conjuntos inexistentes.");
     } else if (estado->estadoInput == Imprimir) {
-      itree_imprimir(tablahash_buscar(listaConjuntos, estado->alias[1], Fetch));
+      set_imprimir(tablahash_buscar(listaConjuntos, estado->alias[1], Fetch));
       puts("");
     } else if (estado->estadoInput == CrearPorExtension || estado->estadoInput == CrearPorComprension) {
       insertar_conjunto(listaConjuntos, estado);
       puts("Conjunto creado.");
     } else if (estado->estadoInput == Complemento) {
-      estado->elements = itree_complemento(tablahash_buscar(listaConjuntos, &(estado->alias[2][1]), Fetch));
+      estado->elements = set_complemento(tablahash_buscar(listaConjuntos, &(estado->alias[2][1]), Fetch));
       insertar_conjunto(listaConjuntos, estado);
     } else {
       calcular_operacion(listaConjuntos, estado, generar_operacion(estado->estadoInput));
       insertar_conjunto(listaConjuntos, estado);
     }
-    len_input2 = get_input(&input);
-    if (len_input2 > len_input) {
-      len_input = len_input2;
-      for (int i=0; i<3; ++i)
-        estado->alias[i] = realloc(estado->alias[i], len_input);
-    }
+    get_input(estado);
     preparar_estado(estado);
-    validar_input(input, listaConjuntos, estado);
+    // if (len_input2 > len_input) {
+      // len_input = len_input2;
+      // for (int i=0; i<3; ++i)
+        // estado->alias[i] = realloc(estado->alias[i], len_input);
+    // }
+    validar_input(listaConjuntos, estado);
   }
-  imprimir_th(listaConjuntos);
-  free(input);
+  imprimir_th(listaConjuntos); // TO DELETE
+  // free(input);
   destruir_estado(estado);
+  tablahash_destruir(listaConjuntos);
 }
 
 
 
 
 
-//   ITree arbol = itree_crear();
-//   ITree interseccion;
+//   Set arbol = set_crear();
+//   Set interseccion;
 //   enum EstadoInput estado;
 //   Intervalo* intv = malloc(sizeof(Intervalo));
 //   fgets(input, STR_SIZE, stdin);
@@ -295,21 +292,21 @@ void interface() {
 //     /* El siguiente switch contempla los posibles valores del EstadoInput estado. */
 //     switch(estado) {
 //       case RecorridoBFS:
-//         itree_recorrer_bfs(arbol, imprimir_intervalo);
+//         set_recorrer_bfs(arbol, imprimir_intervalo);
 //         puts("");
 //       break;
 //       case RecorridoDFS:
-//         itree_recorrer_dfs(arbol, imprimir_intervalo);
+//         set_recorrer_dfs(arbol, imprimir_intervalo);
 //         puts("");
 //       break;
 //       case Insertar:
-//         arbol = itree_insertar(arbol, intv);
+//         arbol = set_insertar(arbol, intv);
 //       break;
 //       case Eliminar:
-//         arbol = itree_eliminar(arbol, intv);
+//         arbol = set_eliminar(arbol, intv);
 //       break;
 //       case Intersecar:
-//         interseccion = itree_intersecar(arbol, intv);
+//         interseccion = set_intersecar(arbol, intv);
 //         if (interseccion) {
 //           printf("Si, ");
 //           imprimir_intervalo(interseccion);
@@ -326,10 +323,10 @@ void interface() {
 //     fgets(input, STR_SIZE, stdin);
 //     estado = validar_input(input, intv);
 //   }
-//   /* Se libera la memoria requerida para buffers y se destruye el ITree. */
+//   /* Se libera la memoria requerida para buffers y se destruye el Set. */
 //   free(input);
 //   free(intv);
-//   itree_destruir(arbol);
+//   set_destruir(arbol);
 // }
 
 
