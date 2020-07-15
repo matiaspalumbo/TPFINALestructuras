@@ -260,11 +260,11 @@ void interface() {
     } else if (estado->estadoInput == CrearPorExtension || estado->estadoInput == CrearPorComprension) {
       insertar_conjunto(listaConjuntos, estado);
       puts("Conjunto creado.");
-    } else if (estado->input == Complemento) {
+    } else if (estado->estadoInput == Complemento) {
       estado->elements = itree_complemento(tablahash_buscar(listaConjuntos, &(estado->alias[2][1]), Fetch));
       insertar_conjunto(listaConjuntos, estado);
     } else {
-      calcular_operacion(tabla, estado, generar_operacion(estado->estadoInput));
+      calcular_operacion(listaConjuntos, estado, generar_operacion(estado->estadoInput));
       insertar_conjunto(listaConjuntos, estado);
     }
     len_input2 = get_input(&input);
