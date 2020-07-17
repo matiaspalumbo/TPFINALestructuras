@@ -1,0 +1,24 @@
+A = {1,2,3,4,-5,-4,20,12,22,23,24,25,-3,-2,-1,0}
+B = {1,-1,0}
+C = {x : 6 <= x <= 3}
+D = {c : -4 <= c <= 2}
+imprimir A
+imprimir B
+imprimir C
+imprimir D
+A|B = A | B
+A&B = A & B
+CA = ~A
+CB = ~B
+CA|CB = CA | CB
+imprimir CB
+imprimir CA|CB
+A-B = A - B
+B-A = B - A
+imprimir A-B
+imprimir B-A
+C-D = C - D
+D-C = D - C
+imprimir C-D
+imprimir D-C
+salir

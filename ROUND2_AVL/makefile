@@ -2,35 +2,31 @@
 
 # Macros.
 PILA = pila.c
-COLA = cola.c
 SET = set.c
-ALGORITMOS = algoritmos.c
-GDCLIST = gdclist.c
-INTERPRETE = interprete.c
 TABLAHASH = tablahash.c
+ESTADO = estado.c
+INTERPRETE = interprete.c
 FLAGS = -Wall -Wextra -Werror -std=c99 -g
 
-# CAMBIAAAAR
+
 # Ejecutable del Interprete.
-interprete : main.c $(COLA:.c=.o) $(PILA:.c=.o) $(INTERPRETE:.c=.o) $(TABLAHASH:.c=.o) $(SET:.c=.o)
+interprete : main.c $(PILA:.c=.o) $(SET:.c=.o)  $(TABLAHASH:.c=.o) $(ESTADO:.c=.o) $(INTERPRETE:.c=.o)
 	gcc $(FLAGS) -o $@ $^
 
 # Archivo objeto del Interprete.
 $(INTERPRETE:.c=.o) : $(INTERPRETE) $(INTERPRETE:.c=.h) $(TABLAHASH:.c=.h)
 	gcc $(FLAGS) -c $(INTERPRETE)
 
+# Archivo objeto del Estado.
+$(ESTADO:.c=.o) : $(ESTADO) $(ESTADO:.c=.h) $(TABLAHASH:.c=.h) $(SET:.c=.h)
+	gcc $(FLAGS) -c $(ESTADO)
+
 # Archivo objeto de la implementación de Tablas Hash.
 $(TABLAHASH:.c=.o) : $(TABLAHASH) $(TABLAHASH:.c=.h) $(PILA:.c=.h)
 	gcc $(FLAGS) -c $(TABLAHASH)
 
-
 $(SET:.c=.o) : $(SET) $(SET:.c=.h)
 	gcc $(FLAGS) -c $(SET)
-
-
-# Archivo objeto de la implementación de Colas.
-$(COLA:.c=.o) : $(COLA) $(COLA:.c=.h)
-	gcc $(FLAGS) -c $(COLA)
 
 # Archivo objeto de la implementación de Pilas.
 $(PILA:.c=.o) : $(PILA) $(PILA:.c=.h)

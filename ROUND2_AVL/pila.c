@@ -41,18 +41,24 @@ void pila_desapilar(Pila* pila) {
 
 // Toma una pila y la imprime en orden.
 void pila_imprimir(Pila pila, FuncionImpresoraPila imprimir) {
-  PilaSNodo* temp = pila;
-  for (; temp->sig != NULL; temp = temp->sig);
-  PilaSNodo* toStop = temp;
-  while (temp != pila) {
+  for (PilaSNodo* temp = pila; temp != NULL; temp = temp->sig) {
     imprimir(temp->dato);
-    temp = pila;
-    for (; temp->sig != toStop; temp = temp->sig);
-    toStop = temp;
   }
-  imprimir(pila->dato);
   puts("");
 }
+// void pila_imprimir(Pila pila, FuncionImpresoraPila imprimir) {
+//   PilaSNodo* temp = pila;
+//   for (; temp->sig != NULL; temp = temp->sig);
+//   PilaSNodo* toStop = temp;
+//   while (temp != pila) {
+//     imprimir(temp->dato);
+//     temp = pila;
+//     for (; temp->sig != toStop; temp = temp->sig);
+//     toStop = temp;
+//   }
+//   imprimir(pila->dato);
+//   puts("");
+// }
 
 
 // Libera la memoria requerida para la pila.

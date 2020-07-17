@@ -4,15 +4,14 @@
 #include <stdlib.h>
 
 
-// #include <string.h>
-#include "set.h" // TO DELETE
-/*
 
+#include "set.h" // TO DELETE
+
+/*
 La Tabla Hash posee las siguientes propiedades:
 - double hashing
 - redimensión ocasional
 - límite del factor de carga
-
 */
 
 
@@ -36,22 +35,15 @@ TablaHash* tablahash_crear(unsigned capacidad, FuncionHash hash, FuncionIgualdad
   return tabla;
 }
 
-
-// unsigned hash_intervalo(unsigned capacidad, unsigned idx) {
-//   // return 1+(idx%capacidad-1);
-//   return INTV_HASH_DOBLE;
-// }
-
-
 /**
  * Inserta el dato en la tabla, asociado a la clave dada.
  */
 void tablahash_insertar(TablaHash* tabla, void* clave, void* dato) {
   if ((double)tabla->numElems/tabla->capacidad > LIM_FACTOR_CARGA)
     tablahash_redimensionar(tabla);
-  unsigned idx = tabla->hash(clave) % tabla->capacidad, intervalo = INTV_HASH_DOBLE;
+  unsigned idx = tabla->hash(clave) % tabla->capacidad;
   while (tabla->tabla[idx].clave && !tabla->iguales(tabla->tabla[idx].clave, clave)) {
-    idx = (idx+intervalo) % tabla->capacidad;
+    idx = (idx+INTV_HASH_DOBLE) % tabla->capacidad;
   }
   if (tabla->tabla[idx].clave && tabla->destDatos) {
     tabla->destDatos(tabla->tabla[idx].dato);

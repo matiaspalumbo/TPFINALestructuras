@@ -237,3 +237,8 @@ void validar_input(char *input, TablaHash* conjs, Estado* estado) {
       //   break;
       //   default: return;
       // }
+
+
+
+
+      // printf("0: %s\n1: %s\n2: %s\n", estado->alias[0], estado->alias[1], estado->alias[2]);

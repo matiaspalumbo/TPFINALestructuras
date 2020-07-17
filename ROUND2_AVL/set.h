@@ -20,6 +20,8 @@ typedef SetNodo* Set;
 
 typedef void (*FuncionVisitante) (Set arbol);
 
+typedef Set (*OperacionBinaria)(Set, Set);
+
 
 /* Crea un árbol de intervalos vacío. */
 Set set_crear();
