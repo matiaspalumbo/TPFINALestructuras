@@ -195,6 +195,22 @@ void validar_input(char *input, TablaHash* conjs, Estado* estado) {
 
 
 
+unsigned long hashStrings(void* str) {
+  // char* toHash = (char*)str;
+  unsigned long hash = 5381; // Primo arbitrario
+  int c = ((char*)str)[0];
+  int j = 0;
+  while (c != '\0') {
+    hash = ((hash << 5) + hash) + c;
+    j++;
+    c = ((char*)str)[j];
+  }
+  return hash;
+}
+
+
+
+
 // void get_input(Estado* estado) {
 //   char c = fgetc(stdin);
 //   size_t i = 0;

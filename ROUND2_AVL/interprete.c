@@ -10,25 +10,28 @@
 
 
 
-unsigned long hashStrings(void* str) {
-  char* toHash = (char*)str ;
-  unsigned long hash = 5381; // Primo arbitrario
-  int c = toHash[0];
-  int j=0;
-  while (c != '\0') {
-    hash = ((hash << 5) + hash) + c;
-    j++;
-    c = toHash[j];
-  }
+/* Genera las claves hash para la tabla con conjuntos en memoria. */
+unsigned long hashStrings(char *str) {
+  unsigned long hash = 0;
+  for (; *str != '\0'; str++)
+    hash = ((hash << 5) + hash) + *str;
   return hash;
 }
 
-
+/* Función verificadora de igualdad de la tabla con conjuntos en memoria */
 int igualesStr(void* clave1, void* clave2) {
   return (strcmp((char*)clave1, (char*)clave2) == 0) ? 1 : 0;
 }
 
+/* Función destructora de datos en la tabla con conjuntos en memoria (destruye sets) */
+void destruir_set(void* set) {
+  set_destruir((Set) set);
+}
 
+/* Función destructora de claves en la tabla con conjuntos en memoria (destruye strings) */
+void destruir_alias(void* alias) {
+  free(alias);
+}
 
 
 void insertar_conjunto(TablaHash* conjs, Estado* estado) {
@@ -37,26 +40,13 @@ void insertar_conjunto(TablaHash* conjs, Estado* estado) {
   tablahash_insertar(conjs, nombreConjunto, estado->elements);
 }
 
-// CREAR CABECERA APARTE PARA ESTADO
-
-
-//   MEJORAR MANEJO DE LA MEMORIA
-
-
-void destruir_set(void* set) {
-  set_destruir((Set) set);
-}
-
-void destruir_alias(void* alias) {
-  free(alias);
-}
-
 
 void calcular_operacion(TablaHash* tabla, Estado* estado, OperacionBinaria operacion) {
   estado->elements = operacion(
     tablahash_buscar(tabla, estado->alias[1], Fetch), 
     tablahash_buscar(tabla, estado->alias[2], Fetch));
 }
+
 
 OperacionBinaria generar_operacion_binaria(enum EstadoInput estadoInput) {
   switch (estadoInput) {
@@ -86,10 +76,8 @@ void interface() {
     } else if (estado->estadoInput == Imprimir) {
       set_imprimir(tablahash_buscar(listaConjuntos, estado->alias[0], Fetch));
       puts("");
-      // printf("max: %d - min: %d\n", ((Set)(tablahash_busscar(listaConjuntos, estado->alias[1], Fetch)))->max, ((Set)(tablahash_buscar(listaConjuntos, estado->alias[1], Fetch)))->min);
     } else if (estado->estadoInput == CrearPorExtension || estado->estadoInput == CrearPorComprension) {
       insertar_conjunto(listaConjuntos, estado);
-      puts("Conjunto creado.");
     } else if (estado->estadoInput == Complemento) {
       estado->elements = set_complemento(tablahash_buscar(listaConjuntos, &(estado->alias[2][1]), Fetch));
       insertar_conjunto(listaConjuntos, estado);
@@ -101,10 +89,7 @@ void interface() {
     get_input(estado);
     validar_input(listaConjuntos, estado);
   }
-  puts("1");
-  imprimir_th(listaConjuntos); // TO DELETE
-  puts("2");
+  // imprimir_th(listaConjuntos); // TO DELETE
   destruir_estado(estado);
-  puts("3");
   tablahash_destruir(listaConjuntos);
 }

@@ -138,14 +138,6 @@ void validar_operaciones(Estado* estado, TablaHash* conjs) {
   if (numEscaneos == 5 && buffChar == '=' && validar_nombre(estado) && (oper == '-' || oper == '|' || oper == '&')) { // OPERACIONES BINARIAS
     int cond = validar_conjunto(conjs, estado->alias[1]) && validar_conjunto(conjs, estado->alias[2]);
     enum EstadoInput tipoOper = (oper == '-') ? (Resta) : ((oper == '|') ? Unir : Intersecar);
-    // switch (oper) {
-    //   case '-':
-    //     tipoOper = Resta;
-    //   case '|':
-    //     tipoOper = Unir;
-    //   case '&':
-    //     tipoOper = Intersecar;
-    // }
     actualizar_estado(estado, tipoOper, ConjuntoInexistente, cond);
   } else
     estado->tipoError = ComandoNoValido;
