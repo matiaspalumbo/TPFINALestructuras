@@ -22,3 +22,186 @@ D-C = D - C
 imprimir C-D
 imprimir D-C
 salir
+
+
+
+
+
+void validar_input(TablaHash* conjs, Estado* estado) {
+  int numEscaneos = sscanf(estado->alias[2], "%s %s %[^\n]\n", estado->alias[0], estado->alias[1], estado->alias[2]);
+  if (numEscaneos == 1 && strcmp(estado->alias[0], "salir") == 0) { // SALIR
+    estado->estadoInput = Salir;
+  } else if (numEscaneos == 2 && strcmp(estado->alias[0], "imprimir") == 0) { // IMPRIMIR
+    int cond = validar_conjunto(conjs, estado->alias[1]) != NULL;
+    actualizar_estado(estado, Imprimir, ConjuntoInexistente, cond);
+  } else if (numEscaneos == 3 && strcmp(estado->alias[1], "=") == 0) { // CREACIÓN U OPERACIONES
+    if (estado->alias[2][0] == '~') { // COMPLEMENTO
+      int cond = validar_conjunto(conjs, &(estado->alias[2][1])) != NULL;
+      actualizar_estado(estado, Complemento, ConjuntoInexistente, cond);
+    } else if (estado->alias[2][0] == '{') { // CREACION
+      if (isalpha(estado->alias[2][1]) || estado->alias[2][1] == '}') { // POR COMPRENSION
+        char c1, c2, c3, c4, space;
+        int *par = malloc(sizeof(int)*2);
+        numEscaneos = sscanf(estado->alias[2], "{%c%c: %d <= %c <= %d%c%c", &c1, &space, &(par[0]), &c2, &(par[1]), &c3, &c4);
+        if (numEscaneos == 1 && c1 == '}') {
+          estado->estadoInput = CrearPorComprension;
+        } else if (numEscaneos == 6 && c1 == c2 && space == ' ' && c3 == '}') {
+          estado->estadoInput = CrearPorComprension;
+          if (par[0] <= par[1]) {
+            Intervalo* intv = malloc(sizeof(Intervalo));
+            intv->izq = par[0];
+            intv->der = par[1];
+            estado->elements = set_insertar(estado->elements, intv);
+            free(intv);
+          }
+        } else
+          estado->tipoError = ComandoNoValido;
+      } else if (isdigit(estado->alias[2][1]) || estado->alias[2][1] == 45) { // POR EXTENSIÓN
+        char buffChar, buffChar2;
+        numEscaneos = sscanf(estado->alias[2], "{%[^}]%c%c", estado->alias[2], &buffChar, &buffChar2);
+        if (numEscaneos == 2 && buffChar == '}') {
+          numEscaneos = 3;
+          char c = ',';
+          int dato;
+          estado->elements = set_crear();
+          Intervalo* intv = malloc(sizeof(Intervalo));
+          while (numEscaneos == 3 && c == ',') {
+            numEscaneos = sscanf(estado->alias[2], "%d%c%s", &dato, &c, estado->alias[2]);
+            if (numEscaneos > 0) {
+              intv->izq = dato;
+              intv->der = dato;
+              estado->elements = set_insertar(estado->elements, intv);
+            }
+          }
+          if (numEscaneos == 1) {
+            estado->estadoInput = CrearPorExtension;
+          } else {
+            estado->tipoError = ComandoNoValido;
+            set_destruir(estado->elements);
+          }
+          free(intv);
+        } else
+          estado->tipoError = ComandoNoValido;
+      } else
+        estado->tipoError = ComandoNoValido;
+    } else { // OPERACIONES
+      char oper;
+      numEscaneos = sscanf(estado->alias[2], "%s %c %s", estado->alias[1], &oper, estado->alias[2]);
+      if (numEscaneos == 3 && (oper == '-' || oper == '|' || oper == '&')) { // OPERACIONES BINARIAS
+        int cond = validar_conjunto(conjs, estado->alias[1]) && validar_conjunto(conjs, estado->alias[2]);
+        actualizar_estado(estado, validar_operacion(oper), ConjuntoInexistente, cond);
+      } else if (numEscaneos == 1) { // IGUALACIÓN DE CONJUNTOS
+        if (validar_conjunto(conjs, estado->alias[1])) {
+          estado->elements = set_clonar(tablahash_buscar(conjs, estado->alias[1], Fetch));
+          estado->estadoInput = CrearPorExtension;
+        } else 
+          estado->tipoError = ConjuntoInexistente;
+      } else
+        estado->tipoError = ComandoNoValido;
+    }
+  } else {
+    estado->tipoError = ComandoNoValido;
+  }
+}
+
+
+
+
+---- NEW ----
+
+
+
+void validar_input(TablaHash* conjs, Estado* estado) {
+  if (estado->numEspacios == 0 && strcmp(estado->alias[2], "salir\n") == 0) {
+    estado->estadoInput = Salir;
+  } else if (estado->numEspacios == 1) {
+    int numEscaneos = sscanf(estado->alias[2], "%s %[^\n]\n", estado->alias[1], estado->alias[0]);
+    if (strcmp(estado->alias[1], "imprimir") == 0) {
+      int cond = validar_conjunto(conjs, estado->alias[0]) && validar_nombre(estado);
+      actualizar_estado(estado, Imprimir, ConjuntoInexistente, cond);
+    } else
+      estado->tipoError = ComandoNoValido;
+  } else if (estado->numEspacios == 2) {
+    int numEscaneos = sscanf(estado->alias[2], "%s %s %[^\n]\n", estado->alias[0], estado->alias[1], estado->alias[2]);
+    if (validar_nombre(estado) && strcmp(estado->alias[1], "=") == 0) {
+      if (estado->alias[2][0] == '~') { // COMPLEMENTO
+        int cond = validar_conjunto(conjs, &(estado->alias[2][1])) != NULL;
+        actualizar_estado(estado, Complemento, ConjuntoInexistente, cond);
+      } else if (estado->alias[2][0] == '{') { // CREACION POR EXTENSIÓN
+        if (strcmp(estado->alias[2], "{}") == 0) {
+          estado->estadoInput = CrearPorExtension;
+        } else {
+          char buffChar, buffChar2;
+          puts("Holaaaasea");
+          numEscaneos = sscanf(estado->alias[2], "{%[^}]%c%c", estado->alias[2], &buffChar, &buffChar2);
+          printf("%d\n", numEscaneos);
+          if (numEscaneos == 2 && buffChar == '}') {
+            puts("Holaaaa");
+            if (estado->alias[2][0] == '\0') {
+              estado->estadoInput = CrearPorExtension;
+            } else {
+              numEscaneos = 3;
+              char c = ',';
+              int dato;
+              estado->elements = set_crear();
+              Intervalo* intv = malloc(sizeof(Intervalo));
+              while (numEscaneos == 3 && c == ',') {
+                numEscaneos = sscanf(estado->alias[2], "%d%c%s", &dato, &c, estado->alias[2]);
+                if (numEscaneos > 0) {
+                  intv->izq = dato;
+                  intv->der = dato;
+                  estado->elements = set_insertar(estado->elements, intv);
+                }
+              }
+              if (numEscaneos == 1) {
+                estado->estadoInput = CrearPorExtension;
+              } else {
+                estado->tipoError = ComandoNoValido;
+                set_destruir(estado->elements);
+              }
+              free(intv);
+            }
+          } else
+            estado->tipoError = ComandoNoValido;
+        }
+      } else {
+        if (validar_conjunto(conjs, estado->alias[2])) {
+          estado->elements = set_clonar(tablahash_buscar(conjs, estado->alias[2], Fetch));
+          estado->estadoInput = CrearPorExtension;
+        } else 
+          estado->tipoError = ConjuntoInexistente;
+      }
+    } else
+      estado->tipoError = ComandoNoValido;
+  } else if (estado->numEspacios == 4) {
+    puts("operationsss");
+    char oper, buffChar;
+    int numEscaneos = sscanf(estado->alias[2], "%s %c %s %c %s", estado->alias[0], &buffChar, estado->alias[1], &oper, estado->alias[2]);
+    printf("%d - %c\n", numEscaneos, oper);
+    if (numEscaneos == 5 && buffChar == '=' && validar_nombre(estado) && (oper == '-' || oper == '|' || oper == '&')) { // OPERACIONES BINARIAS
+      int cond = validar_conjunto(conjs, estado->alias[1]) && validar_conjunto(conjs, estado->alias[2]);
+      actualizar_estado(estado, validar_operacion(oper), ConjuntoInexistente, cond);
+    } else
+      estado->tipoError = ComandoNoValido;
+  } else if (estado->numEspacios == 8) {
+    puts("heree");
+    char c1, c2, c3, space, igual, lineSkip, emptyStr;
+    int *par = malloc(sizeof(int)*2);
+    int numEscaneos = sscanf(estado->alias[2], "%s %c {%c%c: %d <= %c <= %d%c%c%c", estado->alias[0], &igual, &c1, &space, &(par[0]), &c2, &(par[1]), &c3, &lineSkip, &emptyStr);
+    printf("%d\n", numEscaneos);
+    if (numEscaneos == 9 && validar_nombre(estado) && c1 == c2 && space == ' ' && igual == '=' && c3 == '}') {
+      estado->estadoInput = CrearPorComprension;
+      if (par[0] <= par[1]) {
+        Intervalo* intv = malloc(sizeof(Intervalo));
+        intv->izq = par[0];
+        intv->der = par[1];
+        estado->elements = set_insertar(estado->elements, intv);
+        free(intv);
+      }
+    } else
+      estado->tipoError = ComandoNoValido;
+  } else {
+    puts("error?");
+    estado->tipoError = ComandoNoValido;
+  }
+}

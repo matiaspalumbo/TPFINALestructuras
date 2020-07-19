@@ -4,7 +4,7 @@
 #include "set.h"
 #include "tablahash.h"
 
-#define DEFAULT_STR_SIZE 50
+#define DEFAULT_STR_SIZE 80
 #define STR_INPUT_GROWTH_RATE 1.5
 
 enum EstadoInput {
@@ -28,6 +28,8 @@ typedef struct {
   enum EstadoInput estadoInput;
   enum TipoError tipoError;
   char* alias[3];
+  unsigned sizeAlias;
+  int numEspacios;
   Set elements;
 } Estado;
 
@@ -39,8 +41,6 @@ void destruir_estado(Estado* estado);
 void preparar_estado(Estado* estado);
 
 void actualizar_estado(Estado* estado, enum EstadoInput estadoInput, enum TipoError error, int condicion);
-
-enum EstadoInput validar_operacion(char operacion);
 
 void get_input(Estado* estado);
 

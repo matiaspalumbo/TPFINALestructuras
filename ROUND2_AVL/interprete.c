@@ -11,8 +11,8 @@
 
 
 unsigned long hashStrings(void* str) {
-  char* toHash = (char*)str;
-  unsigned long hash = 1297; // Primo arbitrario
+  char* toHash = (char*)str ;
+  unsigned long hash = 5381; // Primo arbitrario
   int c = toHash[0];
   int j=0;
   while (c != '\0') {
@@ -52,8 +52,6 @@ void destruir_alias(void* alias) {
 }
 
 
-
-
 void calcular_operacion(TablaHash* tabla, Estado* estado, OperacionBinaria operacion) {
   estado->elements = operacion(
     tablahash_buscar(tabla, estado->alias[1], Fetch), 
@@ -72,13 +70,12 @@ OperacionBinaria generar_operacion_binaria(enum EstadoInput estadoInput) {
 }
 
 
-
 void interface() {
   TablaHash* listaConjuntos = tablahash_crear(HASH_TABLE_DEF_SIZE, hashStrings, igualesStr, destruir_alias, destruir_set);
 
   Estado *estado = crear_estado();
-  get_input(estado);
   preparar_estado(estado);
+  get_input(estado);
 
   validar_input(listaConjuntos, estado);
   while (estado->estadoInput != Salir) {
@@ -87,7 +84,8 @@ void interface() {
     } else if (estado->tipoError == ConjuntoInexistente) {
       puts("No se pueden realizar operaciones sobre conjuntos inexistentes.");
     } else if (estado->estadoInput == Imprimir) {
-      set_imprimir(tablahash_buscar(listaConjuntos, estado->alias[1], Fetch));
+      set_imprimir(tablahash_buscar(listaConjuntos, estado->alias[0], Fetch));
+      puts("");
       // printf("max: %d - min: %d\n", ((Set)(tablahash_busscar(listaConjuntos, estado->alias[1], Fetch)))->max, ((Set)(tablahash_buscar(listaConjuntos, estado->alias[1], Fetch)))->min);
     } else if (estado->estadoInput == CrearPorExtension || estado->estadoInput == CrearPorComprension) {
       insertar_conjunto(listaConjuntos, estado);
@@ -99,8 +97,8 @@ void interface() {
       calcular_operacion(listaConjuntos, estado, generar_operacion_binaria(estado->estadoInput));
       insertar_conjunto(listaConjuntos, estado);
     }
-    get_input(estado);
     preparar_estado(estado);
+    get_input(estado);
     validar_input(listaConjuntos, estado);
   }
   puts("1");

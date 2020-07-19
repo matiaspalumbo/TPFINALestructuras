@@ -86,7 +86,10 @@ int calcular_min(Set nodo) {
 
 
 long comparar_intervalos(Intervalo *intvA, Intervalo *intvB) {
-  return (intvA->izq >= intvB->izq && intvA->der <= intvB->der) ? 0 : (long)intvA->izq - (long)intvB->izq;
+  if (intvA->izq >= intvB->izq && intvA->der <= intvB->der)
+    return 0;
+  else
+    return  (intvA->izq == intvB->izq) ? ((long)intvA->der - intvB->der) : ((long)intvA->izq - intvB->izq);
   // return (intv1->izq == intv2->izq) ? (long)intv1->der - (long)intv2->der : (long)intv1->izq - (long)intv2->izq;
   // return (intv1->izq == intv2->izq) ? intv1->der - intv2->der : intv1->izq - intv2->izq;
   // return (long)intv1->izq - (long)intv2->izq;
@@ -148,17 +151,17 @@ int hay_interseccion(Intervalo* intv1, Intervalo* intv2) {
 }
 
 void buscar_repeticiones(Set nodo, Set aComparar, Pila* intvsAEliminar) {
-  // puts("buscar_repeticiones: in");
+  puts("buscar_repeticiones: in");
   if (nodo) {
     if (hay_interseccion(nodo->intv, aComparar->intv) 
       || ((long)(aComparar->intv->der))+1 == nodo->intv->izq
       || ((long)(aComparar->intv->izq))-1 == nodo->intv->der) {
       // puts("Hola");
-      // printf("Buscar repeticiones: BOOM entre "); imprimir_intv(aComparar->intv); printf(" y "); imprimir_intv(nodo->intv);
-      // printf("before union_ints: %d:%d, max: %d, min: %d\n", aComparar->intv->izq, aComparar->intv->der, aComparar->max, aComparar->min);
+      printf("Buscar repeticiones: BOOM entre "); imprimir_intv(aComparar->intv); printf(" y "); imprimir_intv(nodo->intv);
+      printf("before union_ints: %d:%d, max: %d, min: %d\n", aComparar->intv->izq, aComparar->intv->der, aComparar->max, aComparar->min);
 
       union_ints(aComparar, nodo->intv);
-      // printf("after union_ints: %d:%d, max: %d, min: %d\n", aComparar->intv->izq, aComparar->intv->der, aComparar->max, aComparar->min);
+      printf("after union_ints: %d:%d, max: %d, min: %d\n", aComparar->intv->izq, aComparar->intv->der, aComparar->max, aComparar->min);
       *intvsAEliminar = pila_apilar(*intvsAEliminar, nodo->intv);
       // aComparar = set_eliminar(aComparar, nodo->intv);
       // nodo = buscar_repeticiones(nodo, aComparar);
@@ -185,11 +188,11 @@ void buscar_repeticiones(Set nodo, Set aComparar, Pila* intvsAEliminar) {
 /* set_insertar inserta un nodo en el lugar correspondiente del Set, y luego
 realiza las rotaciones adecuadas si el árbol resultante está desbalanceado. */
 Set set_insertar(Set nodo, Intervalo *intv) {
-  // if (intv) {
-  //   printf("Insertar ");
-  //   imprimir_intv(intv);
-  //   puts("");
-  // }
+  if (intv) {
+    printf("Insertar ");
+    imprimir_intv(intv); printf("en "); set_imprimir(nodo);
+    puts("");
+  }
   // printf("Quiere insertar %d:%d\n", intv->izq, intv->der);
   if (set_empty(nodo)) { /* Si el nodo es vacío, se debe insertar aquí. */
     nodo = malloc(sizeof(SetNodo));
@@ -203,17 +206,17 @@ Set set_insertar(Set nodo, Intervalo *intv) {
     nodo->right = NULL;
     return nodo;
   } else if (comparar_intervalos(intv, nodo->intv) < 0) { 
-    // puts("comparar_intervalos < 0");
+    puts("comparar_intervalos < 0");
     if (((long)(intv->der))+1 >= nodo->intv->izq) {
-      // puts("attach por lado izquierdo");
+      puts("attach por lado izquierdo");
       Pila intvsAEliminar = pila_crear();
-      // printf("buscar_repeticiones(nodo->left): %d:%d VS. %d:%d ---- %ld\n", nodo->intv->izq, nodo->intv->der, intv->izq, intv->der, ((long)(intv->der))+1);
+      printf("buscar_repeticiones(nodo->left): %d:%d VS. %d:%d ---- %ld\n", nodo->intv->izq, nodo->intv->der, intv->izq, intv->der, ((long)(intv->der))+1);
       int nodoDer = nodo->intv->der;
-      // printf("before union_ints: %d:%d, max: %d, min: %d\n", nodo->intv->izq, nodo->intv->der, nodo->max, nodo->min);
+      printf("before union_ints: %d:%d, max: %d, min: %d\n", nodo->intv->izq, nodo->intv->der, nodo->max, nodo->min);
       union_ints(nodo, intv);
       nodo->max = calcular_max(nodo);
       nodo->min = calcular_min(nodo);
-      // printf("after union_ints: %d:%d, max: %d, min: %d\n", nodo->intv->izq, nodo->intv->der, nodo->max, nodo->min);
+      printf("after union_ints: %d:%d, max: %d, min: %d\n", nodo->intv->izq, nodo->intv->der, nodo->max, nodo->min);
       //nodo = 
       buscar_repeticiones(nodo->left, nodo, &intvsAEliminar);
       if (intv->der > nodoDer) {
@@ -226,17 +229,17 @@ Set set_insertar(Set nodo, Intervalo *intv) {
         pila_desapilar(&intvsAEliminar);
       }
       pila_destruir(intvsAEliminar);
-      // printf("NODO AFTER: %d:%d\n", nodo->intv->izq, nodo->intv->der);
+      printf("NODO AFTER: %d:%d\n", nodo->intv->izq, nodo->intv->der);
       return nodo;
     } else {
     nodo->left = set_insertar(nodo->left, intv);
     }
   } else if (comparar_intervalos(intv, nodo->intv) > 0) {
-    // puts("comparar_intervalos > 0");
+    puts("comparar_intervalos > 0");
     if (((long)(intv->izq))-1 <= nodo->intv->der) {
-      // puts("attach por lado derecho");
+      puts("attach por lado derecho");
       Pila intvsAEliminar = pila_crear();
-      // printf("buscar_repeticiones(nodo->right): %d:%d VS. %d:%d\n", nodo->intv->izq, nodo->intv->der, intv->izq, intv->der);
+      printf("buscar_repeticiones(nodo->right): %d:%d VS. %d:%d\n", nodo->intv->izq, nodo->intv->der, intv->izq, intv->der);
       int nodoIzq = nodo->intv->izq;
       union_ints(nodo, intv);
       nodo->max = calcular_max(nodo);
@@ -253,13 +256,13 @@ Set set_insertar(Set nodo, Intervalo *intv) {
         pila_desapilar(&intvsAEliminar);
       }
       pila_destruir(intvsAEliminar);
-      // printf("NODO AFTER: %d:%d\n", nodo->intv->izq, nodo->intv->der);
+      printf("NODO AFTER: %d:%d\n", nodo->intv->izq, nodo->intv->der);
       return nodo;
     } else {
     nodo->right = set_insertar(nodo->right, intv);
     }
   } else {
-    // puts("comparar_intervalos == 0");
+    puts("comparar_intervalos == 0");
     /* Si el intervalo a insertar ya está en el árbol, no se inserta nada. */
     return nodo;
   }
@@ -371,7 +374,7 @@ Set set_eliminar(Set nodo, Intervalo *intv) {
 void set_imprimir_aux(Set tree, int max) {
   if (tree) {
     set_imprimir_aux(tree->left, max);
-    imprimir_intv(tree->intv);//printf("(%d,%d)", tree->max, tree->min);
+    imprimir_intv(tree->intv);printf("(%d)", tree->altura);
     if (tree->intv->der != max)
       printf(",");
     set_imprimir_aux(tree->right, max);
@@ -382,7 +385,7 @@ void set_imprimir_aux(Set tree, int max) {
 void set_imprimir(Set tree) {
   if (tree) {
     set_imprimir_aux(tree, tree->max);
-    puts("");
+    // puts("");
   }
   else
     printf("{}");
@@ -402,10 +405,7 @@ Set set_clonar(Set arbol) {
     if (set_empty(arbol))
         return set_crear();
     Set resultado = set_crear();
-    resultado = set_insertar(resultado, arbol->intv);
-    set_clonar_aux(resultado, arbol);
-    // printf("Despues de insertar ");imprimir_intv(arbol->intv);printf("(%d,%d)\n", arbol->max, arbol->min);
-    // set_imprimir(arbol);
+    resultado = set_clonar_aux(resultado, arbol);
     return resultado;
 }
 
@@ -427,6 +427,8 @@ Set set_union(Set arbol1, Set arbol2) {
   Set menorAltura = (arbol2->altura < arbol1->altura) ? arbol2 : arbol1;
   Set mayorAltura = (arbol2->altura < arbol1->altura) ? arbol1 : arbol2;
   Set resultado = set_clonar(mayorAltura);
+  printf("union: mayorAltura: "); set_imprimir(mayorAltura); puts("");
+  set_imprimir(resultado); puts("");
   resultado = unir_arboles(resultado, menorAltura);
   return resultado;
 }
@@ -530,7 +532,7 @@ Set set_interseccion(Set arbol1, Set arbol2) {
     return NULL;
   Set menorRango = ((long)(arbol1->max) - arbol1->min > (long)(arbol2->max) - arbol2->min) ? arbol2 : arbol1;
   Set mayorRango = ((long)(arbol1->max) - arbol1->min > (long)(arbol2->max) - arbol2->min) ? arbol1 : arbol2;
-  printf("Intersecar 1. "); set_imprimir(menorRango); printf("con 2. "); set_imprimir(mayorRango); puts("");
+  printf("Intersecar menorRango: "); set_imprimir(menorRango); printf("con mayorRango: "); set_imprimir(mayorRango); puts("");
   // printf("Mayor rango min: %d - max: %d\n", mayorRango->min, mayorRango->max); 
   // printf("Menor rango min: %d - max: %d\n", menorRango->min, menorRango->max); 
   // printf("Mayor rango: "); set_imprimir(mayorRango); puts("");

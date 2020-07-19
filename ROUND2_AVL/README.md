@@ -33,6 +33,8 @@ COMANDOS:
 - `B = B - A`
 - `A = ~A`
 
+
+
 <!-- PROCESO DE VALIDACIÓN DE INPUT:
 
 
@@ -193,6 +195,27 @@ void validar_input(char *input, TablaHash* conjs, Estado* estado) {
 
 
 
+// void get_input(Estado* estado) {
+//   char c = fgetc(stdin);
+//   size_t i = 0;
+//   for (; c != '\n'; i++) {
+//     if (i == estado->sizeAlias-1) {
+//       estado->sizeAlias *= STR_INPUT_GROWTH_RATE;
+//       for (int j=0; j<3; j++)
+//         estado->alias[j] = realloc(estado->alias[j], sizeof(char) * estado->sizeAlias);
+//     }
+//     estado->alias[2][i] = c;
+//     c = fgetc(stdin);
+//   }
+//   estado->alias[2][i] = '\n';
+//   estado->alias[2][i+1] = '\0';
+//   printf("%s%u\n", estado->alias[2], estado->sizeAlias);  
+// }
+
+
+
+
+
 ------------
 
       // switch (estado->estadoInput) {
@@ -242,3 +265,22 @@ void validar_input(char *input, TablaHash* conjs, Estado* estado) {
 
 
       // printf("0: %s\n1: %s\n2: %s\n", estado->alias[0], estado->alias[1], estado->alias[2]);
+
+
+
+      // void get_input(Estado* estado) {
+//   char c = fgetc(stdin);
+//   size_t len_input = DEFAULT_STR_SIZE;
+//   size_t i = 0;
+//   for (; c != '\n'; i++) {
+//     if (i == len_input-2) {
+//       len_input *= STR_INPUT_GROWTH_RATE;
+//       for (int i=0; i<3; i++)
+//         estado->alias[i] = realloc(estado->alias[i], sizeof(char)*len_input);
+//     }
+//     estado->alias[2][i] = c;
+//     c = fgetc(stdin);
+//   }
+//   estado->alias[2][i] = '\n';
+//   estado->alias[2][i+1] = '\0';
+// }
