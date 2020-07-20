@@ -2,45 +2,37 @@
 
 # Macros.
 PILA = pila.c
-COLA = cola.c
-SETS = sets.c
-ALGORITMOS = algoritmos.c
-GDCLIST = gdclist.c
-INTERPRETE = interprete.c
+SET = set.c
 TABLAHASH = tablahash.c
+ESTADO = estado.c
+INTERPRETE = interprete.c
 FLAGS = -Wall -Wextra -Werror -std=c99 -g
 
-# CAMBIAAAAR
-# Ejecutable del Interprete.
-interprete : main.c $(COLA:.c=.o) $(PILA:.c=.o) $(INTERPRETE:.c=.o) $(TABLAHASH:.c=.o) $(SETS:.c=.o) $(GDCLIST:.c=.o) $(ALGORITMOS:.c=.o)
+
+# Ejecutable del intérprete.
+interprete : main.c $(PILA:.c=.o) $(SET:.c=.o)  $(TABLAHASH:.c=.o) $(ESTADO:.c=.o) $(INTERPRETE:.c=.o)
 	gcc $(FLAGS) -o $@ $^
 
-# Archivo objeto del Interprete.
+# Archivo objeto del Intérprete.
 $(INTERPRETE:.c=.o) : $(INTERPRETE) $(INTERPRETE:.c=.h) $(TABLAHASH:.c=.h)
 	gcc $(FLAGS) -c $(INTERPRETE)
+
+# Archivo objeto del Estado.
+$(ESTADO:.c=.o) : $(ESTADO) $(ESTADO:.c=.h) $(TABLAHASH:.c=.h) $(SET:.c=.h)
+	gcc $(FLAGS) -c $(ESTADO)
 
 # Archivo objeto de la implementación de Tablas Hash.
 $(TABLAHASH:.c=.o) : $(TABLAHASH) $(TABLAHASH:.c=.h) $(PILA:.c=.h)
 	gcc $(FLAGS) -c $(TABLAHASH)
 
-# Archivo objeto de la implementación de Listas Circulares Doblemente Enlazadas.
-$(GDCLIST:.c=.o) : $(GDCLIST) $(GDCLIST:.c=.h)
-	gcc $(FLAGS) -c $(GDCLIST)
-
-$(ALGORITMOS:.c=.o) : $(ALGORITMOS) $(ALGORITMOS:.c=.h)
-	gcc $(ALGORITMOS) -c $(ALGORITMOS)
-
 # Archivo objeto de la implementación de Sets.
-$(SETS:.c=.o) : $(SETS) $(SETS:.c=.h)
-	gcc $(FLAGS) -c $(SETS)
-
-# Archivo objeto de la implementación de Colas.
-$(COLA:.c=.o) : $(COLA) $(COLA:.c=.h)
-	gcc $(FLAGS) -c $(COLA)
+$(SET:.c=.o) : $(SET) $(SET:.c=.h)
+	gcc $(FLAGS) -c $(SET)
 
 # Archivo objeto de la implementación de Pilas.
 $(PILA:.c=.o) : $(PILA) $(PILA:.c=.h)
 	gcc $(FLAGS) -c $(PILA)
+
 
 # Destino simbólico que borra todos los archivos con extensión .o cuando se invoca.
 clean: 
