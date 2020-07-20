@@ -9,11 +9,11 @@ INTERPRETE = interprete.c
 FLAGS = -Wall -Wextra -Werror -std=c99 -g
 
 
-# Ejecutable del Interprete.
+# Ejecutable del intérprete.
 interprete : main.c $(PILA:.c=.o) $(SET:.c=.o)  $(TABLAHASH:.c=.o) $(ESTADO:.c=.o) $(INTERPRETE:.c=.o)
 	gcc $(FLAGS) -o $@ $^
 
-# Archivo objeto del Interprete.
+# Archivo objeto del Intérprete.
 $(INTERPRETE:.c=.o) : $(INTERPRETE) $(INTERPRETE:.c=.h) $(TABLAHASH:.c=.h)
 	gcc $(FLAGS) -c $(INTERPRETE)
 
@@ -25,12 +25,14 @@ $(ESTADO:.c=.o) : $(ESTADO) $(ESTADO:.c=.h) $(TABLAHASH:.c=.h) $(SET:.c=.h)
 $(TABLAHASH:.c=.o) : $(TABLAHASH) $(TABLAHASH:.c=.h) $(PILA:.c=.h)
 	gcc $(FLAGS) -c $(TABLAHASH)
 
+# Archivo objeto de la implementación de Sets.
 $(SET:.c=.o) : $(SET) $(SET:.c=.h)
 	gcc $(FLAGS) -c $(SET)
 
 # Archivo objeto de la implementación de Pilas.
 $(PILA:.c=.o) : $(PILA) $(PILA:.c=.h)
 	gcc $(FLAGS) -c $(PILA)
+
 
 # Destino simbólico que borra todos los archivos con extensión .o cuando se invoca.
 clean: 

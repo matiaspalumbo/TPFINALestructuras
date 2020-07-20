@@ -3,30 +3,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-
-#define HASH_TABLE_DEF_SIZE 32
+#include <limits.h>
 
 /* Archivo con las funciones que componen el intérprete. */
 
+#define HASH_TABLE_DEF_SIZE 32
 
 
 /* Genera las claves hash para la tabla con conjuntos en memoria. */
-unsigned long hashStrings(char *str) {
-  unsigned long hash = 0;
-  for (; *str != '\0'; str++)
-    hash = ((hash << 5) + hash) + *str;
+unsigned long hashStrings(void *str) {
+  unsigned long hash = 5381;
+  char* str2 = (char*)str;
+  for (; *str2 != '\0'; str2++)
+    hash = ((hash << 5) + hash) + *str2;
   return hash;
 }
 
+
 /* Función verificadora de igualdad de la tabla con conjuntos en memoria */
 int igualesStr(void* clave1, void* clave2) {
-  return (strcmp((char*)clave1, (char*)clave2) == 0) ? 1 : 0;
+  return strcmp((char*)clave1, (char*)clave2) == 0;
 }
+
 
 /* Función destructora de datos en la tabla con conjuntos en memoria (destruye sets) */
 void destruir_set(void* set) {
   set_destruir((Set) set);
 }
+
 
 /* Función destructora de claves en la tabla con conjuntos en memoria (destruye strings) */
 void destruir_alias(void* alias) {
@@ -60,6 +64,7 @@ OperacionBinaria generar_operacion_binaria(enum EstadoInput estadoInput) {
 }
 
 
+/* Función que encapsula el comportamiento del intérprete */
 void interface() {
   TablaHash* listaConjuntos = tablahash_crear(HASH_TABLE_DEF_SIZE, hashStrings, igualesStr, destruir_alias, destruir_set);
 
@@ -73,6 +78,8 @@ void interface() {
       puts("Comando no válido.");
     } else if (estado->tipoError == ConjuntoInexistente) {
       puts("No se pueden realizar operaciones sobre conjuntos inexistentes.");
+    } else if (estado->tipoError == ElementosNoValidos) {
+      printf("Los enteros \"x\" utilizados deben verificar %d <= x <= %d.\n", INT_MIN, INT_MAX);
     } else if (estado->estadoInput == Imprimir) {
       set_imprimir(tablahash_buscar(listaConjuntos, estado->alias[0], Fetch));
       puts("");
@@ -89,7 +96,6 @@ void interface() {
     get_input(estado);
     validar_input(listaConjuntos, estado);
   }
-  // imprimir_th(listaConjuntos); // TO DELETE
   destruir_estado(estado);
   tablahash_destruir(listaConjuntos);
 }

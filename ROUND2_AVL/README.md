@@ -85,7 +85,18 @@ si es por extensión, se copian iterativamente los números en ambos datos del i
 
 
 
-
+void imprimir_th(TablaHash* th) {
+  printf("--- TABLA HASH (%u:%u) ---\n", th->numElems, th->capacidad);
+  for (unsigned i = 0; i < th->capacidad; i++) {
+    if (th->tabla[i].clave == NULL) puts("NULL");
+    else {
+      printf("%s : ", ((char*)th->tabla[i].clave));
+      set_imprimir((Set) (th->tabla[i].dato));
+      puts("");
+    }
+  }
+  printf("-------------------------------%s%s\n", (th->numElems == 1) ? "" : "-", (th->numElems > 9) ? "-" : "");
+}
 
 
 
@@ -191,6 +202,65 @@ void validar_input(char *input, TablaHash* conjs, Estado* estado) {
     estado->tipoError = ComandoNoValido;
   }
 }
+
+
+
+int set_intersecar(Set arbol, Intervalo *intv, Intervalo* buffer) {
+  if (!set_empty(arbol)) {
+    printf("set_intersecar: %d:%d\n", intv->izq, intv->der);
+    // if (intv->der < arbol->intv->izq || intv->izq > arbol->intv->der) { /* El intervalo no se interseca con la raíz. */
+      if (!hay_interseccion(arbol->intv, intv)) {
+      /* Si su subárbol izquierdo es no vacío y si el máximo del subárbol izquierdo es mayor o igual 
+      al extremo izquierdo del intervalo, entonces es seguro que habrá intersección en ese subárbol. (*) */
+      if (!set_empty(arbol->left) && intv->izq <= arbol->left->max && intv->der >= arbol->left->min)
+        return set_intersecar(arbol->left, intv, buffer);
+      /* (Si intv->izq es mayor que el ext. derecho de la raíz) Si su subárbol derecho es no vacío y si el máximo 
+      del subárbol derecho es mayor o igual a intv->izq, entonces es posible que haya intersección en ese subárbol. */
+      else if (intv->izq > arbol->intv->der && !set_empty(arbol->right) && intv->izq <= arbol->right->max && intv->der >= arbol->right->min)
+        return set_intersecar(arbol->right, intv, buffer);
+      else 
+        return 0;
+    } else { // En caso contrario, se interseca con el intervalo de la raíz.
+      buffer->izq = (arbol->intv->izq > intv->izq) ? arbol->intv->izq : intv->izq;
+      buffer->der = (arbol->intv->der < intv->der) ? arbol->intv->der : intv->der;
+      return 1;
+    }
+  } else
+    return 0;
+}
+
+
+
+
+
+// TO DELETE
+Set set_crear_sucesion(FunGeneradora generar, Numeros direccion, int posInicial) {
+  long elem = posInicial;
+  Set resultado = set_crear();
+  Intervalo* intv = malloc(sizeof(Intervalo));
+  // resultado = set_insertar(resultado, posInicial);
+  while (elem < INT_MAX) {
+    intv->izq = (direccion == Negativos) ? -elem : elem;
+    intv->der = (direccion == Negativos) ? -elem : elem;
+    resultado = set_insertar(resultado, intv);
+    if (direccion == Ambos) {
+      intv->izq = -elem;
+      intv->der = -elem;
+      resultado = set_insertar(resultado, intv);
+    }
+    elem = generar(elem);
+  }
+  free(intv);
+  return resultado;
+}
+
+
+
+typedef long (*FunGeneradora)(int); // TO DELETE
+typedef enum Numeros {Positivos, Negativos, Ambos} Numeros; // TO DELETE
+Set set_crear_sucesion(FunGeneradora generar, Numeros direccion, int posInicial); // TO DELETE
+
+
 
 
 

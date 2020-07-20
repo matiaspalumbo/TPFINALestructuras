@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-
+#include <limits.h>
 
 
 Estado* crear_estado() {
@@ -55,7 +55,6 @@ void get_input(Estado* estado) {
   }
   estado->alias[2][i] = '\n';
   estado->alias[2][i+1] = '\0';
-  printf("%s%u - espacios: %d\n", estado->alias[2], estado->sizeAlias, estado->numEspacios);
   
 }
 
@@ -86,6 +85,10 @@ void validar_complemento(Estado* estado, TablaHash* conjs) {
 }
 
 
+int validar_elementos(long long dato) {
+  return dato <= INT_MAX && dato >= INT_MIN;
+}
+
 void validar_creacion_extension(Estado* estado) {
   if (strcmp(estado->alias[2], "{}") == 0) {
     estado->estadoInput = CrearPorExtension;
@@ -98,22 +101,30 @@ void validar_creacion_extension(Estado* estado) {
       } else {
         numEscaneos = 3;
         char c = ',';
-        int dato;
+        long long dato = 0;
+        int elemNovalido = 0;
         estado->elements = set_crear();
         Intervalo* intv = malloc(sizeof(Intervalo));
         while (numEscaneos == 3 && c == ',') {
-          numEscaneos = sscanf(estado->alias[2], "%d%c%s", &dato, &c, estado->alias[2]);
-          if (numEscaneos > 0) {
-            intv->izq = dato;
-            intv->der = dato;
+          numEscaneos = sscanf(estado->alias[2], "%lld%c%s", &dato, &c, estado->alias[2]);
+          if (!validar_elementos(dato))
+            elemNovalido = 1;
+          if (numEscaneos > 0 && !elemNovalido) {
+            intv->izq = (int)dato;
+            intv->der = (int)dato;
             estado->elements = set_insertar(estado->elements, intv);
           }
         }
-        if (numEscaneos == 1) {
-          estado->estadoInput = CrearPorExtension;
-        } else {
+        if ((numEscaneos > 1 && c != ',') || numEscaneos < 1) {
+          printf("...%d - \n", numEscaneos);
           estado->tipoError = ComandoNoValido;
           set_destruir(estado->elements);
+        } else if (elemNovalido) {
+          printf("%d - \n", numEscaneos);
+          estado->tipoError = ElementosNoValidos;
+          set_destruir(estado->elements);
+        } else if (numEscaneos == 1) {
+          estado->estadoInput = CrearPorExtension;
         }
         free(intv);
       }
@@ -146,21 +157,22 @@ void validar_operaciones(Estado* estado, TablaHash* conjs) {
 
 void validar_creacion_comprension(Estado* estado) {
   char c1, c2, c3, igual, lineSkip, emptyStr;
-  int *par = malloc(sizeof(int)*2);
-  int numEscaneos = sscanf(estado->alias[2], "%s %c {%c : %d <= %c <= %d%c%c%c",
+  long long *par = malloc(sizeof(long long)*2);
+  int numEscaneos = sscanf(estado->alias[2], "%s %c {%c : %lld <= %c <= %lld%c%c%c",
     estado->alias[0], &igual, &c1, &(par[0]),
     &c2, &(par[1]), &c3, &lineSkip, &emptyStr);
-  if (numEscaneos == 8 && validar_nombre(estado) && c1 == c2 && igual == '=' && c3 == '}') {
+  if (numEscaneos == 8 && validar_nombre(estado) && c1 == c2 && igual == '=' 
+    && c3 == '}' && validar_elementos(par[0]) && validar_elementos(par[1])) {
     estado->estadoInput = CrearPorComprension;
     if (par[0] <= par[1]) {
       Intervalo* intv = malloc(sizeof(Intervalo));
-      intv->izq = par[0];
-      intv->der = par[1];
+      intv->izq = (int)(par[0]);
+      intv->der = (int)(par[1]);
       estado->elements = set_insertar(estado->elements, intv);
       free(intv);
     }
   } else
-    estado->tipoError = ComandoNoValido;
+    estado->tipoError = (!validar_elementos(par[0]) || !validar_elementos(par[1])) ? ElementosNoValidos : ComandoNoValido;
 }
 
 
@@ -172,9 +184,9 @@ void validar_input(TablaHash* conjs, Estado* estado) {
   else if (estado->numEspacios == 2) {
     sscanf(estado->alias[2], "%s %s %[^\n]\n", estado->alias[0], estado->alias[1], estado->alias[2]);
     if (validar_nombre(estado) && strcmp(estado->alias[1], "=") == 0) {
-      if (estado->alias[2][0] == '~') // COMPLEMENTO
+      if (estado->alias[2][0] == '~')
         validar_complemento(estado, conjs);
-      else if (estado->alias[2][0] == '{') // CREACION POR EXTENSIÓN
+      else if (estado->alias[2][0] == '{')
         validar_creacion_extension(estado);
       else
         validar_igualacion_conjuntos(estado, conjs);
@@ -187,4 +199,3 @@ void validar_input(TablaHash* conjs, Estado* estado) {
   else
     estado->tipoError = ComandoNoValido;
 }
-

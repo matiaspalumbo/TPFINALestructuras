@@ -2,21 +2,10 @@
 #include <stdio.h>
 #include "set.h"
 #include "pila.h"
-#include "limits.h"
+#include <limits.h>
 
-/* Archivo con la implementación de Árboles de Intervalos AVL. */
+/* Archivo con la implementación de conjuntos (Sets). */
 
-void imprimir_intv(void* intv) {
-  if (((Intervalo*)intv)->izq == ((Intervalo*)intv)->der) {
-    printf("%d", ((Intervalo*)intv)->izq);
-  } else {
-    printf("%d:%d", ((Intervalo*)intv)->izq, ((Intervalo*)intv)->der);
-  }
-}
-
-void printggg(void* intv) {
-  printf("%d:%d,", ((Intervalo*)intv)->izq, ((Intervalo*)intv)->der);
-}
 
 Set set_crear() {
   return NULL;
@@ -38,27 +27,26 @@ int set_empty(Set nodo) {
 }
 
 
+/* Devuelve la altura del nodo. */
 int itree_altura(Set nodo) {
   return (set_empty(nodo)) ? -1 : nodo->altura;
 }
 
 
+/* Devuelve el factor de balance del nodo. */
 int itree_balance_factor(Set nodo) {
   return itree_altura(nodo->left) - itree_altura(nodo->right);
 }
 
 
+/* Calcula el máximo entre dos enteros. */
 int maximo(int n1, int n2) {
   return n1 < n2 ? n2 : n1;
 }
 
+/* Calcula el mínimo entre dos enteros. */
 int minimo(int n1, int n2) {
   return n1 < n2 ? n1 : n2;
-}
-
-/* Calcula la altura de un Set luego de insertar un nodo. */
-int calcular_altura(Set nodo) {
-  return 1 + maximo(itree_altura(nodo->right), itree_altura(nodo->left));
 }
 
 
@@ -73,6 +61,7 @@ int calcular_max(Set nodo) {
     return nodo->intv->der;
 }
 
+
 /* Calcula el mínimo extremo izquierdo de un Set luego de insertar un nodo. */
 int calcular_min(Set nodo) {
   if (!set_empty(nodo->left) && !set_empty(nodo->right))
@@ -85,20 +74,15 @@ int calcular_min(Set nodo) {
 }
 
 
+/* Devuelve 0 si intvA está contenido en intvB. Caso contrario,
+los compara de acuerdo al orden lexicográfico. */
 long comparar_intervalos(Intervalo *intvA, Intervalo *intvB) {
   if (intvA->izq >= intvB->izq && intvA->der <= intvB->der)
     return 0;
   else
     return  (intvA->izq == intvB->izq) ? ((long)intvA->der - intvB->der) : ((long)intvA->izq - intvB->izq);
-  // return (intv1->izq == intv2->izq) ? (long)intv1->der - (long)intv2->der : (long)intv1->izq - (long)intv2->izq;
-  // return (intv1->izq == intv2->izq) ? intv1->der - intv2->der : intv1->izq - intv2->izq;
-  // return (long)intv1->izq - (long)intv2->izq;
 }
 
-// Devuelve 1 si B esta contenido en A, 0 en otro caso;
-// int esta_contenido(Intervalo* intvA, Intervalo* intvB) {
-  // return intvB->izq >= intvA->izq && intvB->der <= intvA->der;
-// }
 
 /* Realiza una rotación a derecha del nodo dado como parámetro. */
 Set rotacion_a_derecha(Set nodo) {
@@ -108,7 +92,7 @@ Set rotacion_a_derecha(Set nodo) {
   /* El hijo derecho del hijo izquierdo del nodo pasará a ser el hijo izquierdo
   del nodo sobre el cual se realizó la rotación. */
   nodo->left = hijo_raiz;
-  /* Se actualizan las alturas y máximos de los nodos rotados. */
+  /* Se actualizan las alturas, máximos y mínimos de los nodos rotados. */
   nodo->altura = 1 + maximo(itree_altura(nodo->right), itree_altura(nodo->left));
   nuevaRaiz->altura = 1 + maximo(itree_altura(nuevaRaiz->right), itree_altura(nuevaRaiz->left));
   nodo->max = calcular_max(nodo);
@@ -127,7 +111,7 @@ Set rotacion_a_izquierda(Set nodo) {
   /* El hijo izquierdo del hijo derecho del nodo pasará a ser el hijo derecho
   del nodo sobre el cual se realizó la rotación. */
   nodo->right = hijo_raiz;
-  /* Se actualizan las alturas y máximos de los nodos rotados. */
+  /* Se actualizan las alturas, máximos y mínimos de los nodos rotados. */
   nodo->altura = 1 + maximo(itree_altura(nodo->right), (itree_altura(nodo->left)));
   nuevaRaiz->altura = 1 + maximo(itree_altura(nuevaRaiz->right), (itree_altura(nuevaRaiz->left)));
   nodo->max = calcular_max(nodo);
@@ -137,63 +121,62 @@ Set rotacion_a_izquierda(Set nodo) {
   return nuevaRaiz;
 }
 
-void union_ints(SetNodo* nodoIntv1, Intervalo* intv2) { // Une dos intervalos que se intersecan.
-  // Intervalo* intv = malloc(sizeof(Intervalo));
+
+/* Une dos intervalos que se intersecan en el nodo que guarda al primer intervalo. */
+void union_ints(SetNodo* nodoIntv1, Intervalo* intv2) { 
   nodoIntv1->intv->izq = (nodoIntv1->intv->izq < intv2->izq) ? nodoIntv1->intv->izq : intv2->izq;
   nodoIntv1->intv->der = (nodoIntv1->intv->der > intv2->der) ? nodoIntv1->intv->der : intv2->der;
   nodoIntv1->max = calcular_max(nodoIntv1);
   nodoIntv1->min = calcular_min(nodoIntv1);
-  // return intv;
 }
 
+
+/* Verifica si dos intervalos se intersecan. */
 int hay_interseccion(Intervalo* intv1, Intervalo* intv2) {
   return intv1->der >= intv2->izq && intv1->izq <= intv2->der;
 }
 
+
+/* Busca en el nodo recursivamente nodos cuyos intervalos puedan unirse 
+con aComparar, y los almacena en una pila pasada como parámetro. */
 void buscar_repeticiones(Set nodo, Set aComparar, Pila* intvsAEliminar) {
-  puts("buscar_repeticiones: in");
   if (nodo) {
     if (hay_interseccion(nodo->intv, aComparar->intv) 
       || ((long)(aComparar->intv->der))+1 == nodo->intv->izq
       || ((long)(aComparar->intv->izq))-1 == nodo->intv->der) {
-      // puts("Hola");
-      printf("Buscar repeticiones: BOOM entre "); imprimir_intv(aComparar->intv); printf(" y "); imprimir_intv(nodo->intv);
-      printf("before union_ints: %d:%d, max: %d, min: %d\n", aComparar->intv->izq, aComparar->intv->der, aComparar->max, aComparar->min);
-
       union_ints(aComparar, nodo->intv);
-      printf("after union_ints: %d:%d, max: %d, min: %d\n", aComparar->intv->izq, aComparar->intv->der, aComparar->max, aComparar->min);
       *intvsAEliminar = pila_apilar(*intvsAEliminar, nodo->intv);
-      // aComparar = set_eliminar(aComparar, nodo->intv);
-      // nodo = buscar_repeticiones(nodo, aComparar);
-
-      // if (aComparar->intv->der >= nodo->intv->izq && aComparar->intv->der < nodo->intv->der-1) {
-      //     nodo->intv->izq = aComparar->intv->der + 1;
-      //     puts("buscar_repeticiones: all is well");
-      // } else {
-      //   if (nodo->intv->izq-1 == aComparar->intv->der)
-      //     aComparar->intv->der == nodo->intv->der;
-      //   puts("buscar_repeticiones: BOOM");
-      //   nodo = set_eliminar(nodo, nodo->intv);
-      // }
     }
     buscar_repeticiones(nodo->left, aComparar, intvsAEliminar);
     buscar_repeticiones(nodo->right, aComparar, intvsAEliminar);
   }
-  // if (!nodo) puts("nodo NULL");
-  // return aComparar;
+}
+
+/* Une un intervalo al nodo en cuestión. Luego, busca en el resto del Set 
+posibles repeticiones del intervalo insertado, y las elimina de él.
+Si direccion == 1, asume que intv puede unirse al extremo izquierdo del intervalo
+del nodo. Caso contrario, asume que puede unirse al extremo derecho. */
+Set agregar_a_intv_existente(Set nodo, Intervalo* intv, int direccion) {
+  Pila intvsAEliminar = pila_crear();
+  int otroExt = direccion ? nodo->intv->der : nodo->intv->izq;
+  union_ints(nodo, intv);
+  nodo->max = calcular_max(nodo);
+  nodo->min = calcular_min(nodo);
+  buscar_repeticiones((direccion) ? nodo->left : nodo->right, nodo, &intvsAEliminar);
+  if (direccion ? intv->der > otroExt : intv->izq < otroExt)
+    // En este caso, también puede haber repeticiones en el otro subárbol.
+    buscar_repeticiones(direccion ? nodo->right : nodo->left, nodo, &intvsAEliminar);
+  while (!pila_es_vacia(intvsAEliminar)) {
+    nodo = set_eliminar(nodo, pila_ultimo(intvsAEliminar));
+    pila_desapilar(&intvsAEliminar);
+  }
+  pila_destruir(intvsAEliminar);
+  return nodo;
 }
 
 
-
-/* set_insertar inserta un nodo en el lugar correspondiente del Set, y luego
-realiza las rotaciones adecuadas si el árbol resultante está desbalanceado. */
+/* Agrega un intervalo al Set. */
 Set set_insertar(Set nodo, Intervalo *intv) {
-  if (intv) {
-    printf("Insertar ");
-    imprimir_intv(intv); printf("en "); set_imprimir(nodo);
-    puts("");
-  }
-  // printf("Quiere insertar %d:%d\n", intv->izq, intv->der);
   if (set_empty(nodo)) { /* Si el nodo es vacío, se debe insertar aquí. */
     nodo = malloc(sizeof(SetNodo));
     nodo->intv = malloc(sizeof(Intervalo));
@@ -205,75 +188,30 @@ Set set_insertar(Set nodo, Intervalo *intv) {
     nodo->left = NULL;
     nodo->right = NULL;
     return nodo;
-  } else if (comparar_intervalos(intv, nodo->intv) < 0) { 
-    puts("comparar_intervalos < 0");
-    if (((long)(intv->der))+1 >= nodo->intv->izq) {
-      puts("attach por lado izquierdo");
-      Pila intvsAEliminar = pila_crear();
-      printf("buscar_repeticiones(nodo->left): %d:%d VS. %d:%d ---- %ld\n", nodo->intv->izq, nodo->intv->der, intv->izq, intv->der, ((long)(intv->der))+1);
-      int nodoDer = nodo->intv->der;
-      printf("before union_ints: %d:%d, max: %d, min: %d\n", nodo->intv->izq, nodo->intv->der, nodo->max, nodo->min);
-      union_ints(nodo, intv);
-      nodo->max = calcular_max(nodo);
-      nodo->min = calcular_min(nodo);
-      printf("after union_ints: %d:%d, max: %d, min: %d\n", nodo->intv->izq, nodo->intv->der, nodo->max, nodo->min);
-      //nodo = 
-      buscar_repeticiones(nodo->left, nodo, &intvsAEliminar);
-      if (intv->der > nodoDer) {
-        // nodo->right = 
-        buscar_repeticiones(nodo->right, nodo, &intvsAEliminar);
-      }
-      // pila_imprimir(intvsAEliminar, imprimir_intv);
-      while (!pila_es_vacia(intvsAEliminar)) {
-        nodo = set_eliminar(nodo, pila_ultimo(intvsAEliminar));
-        pila_desapilar(&intvsAEliminar);
-      }
-      pila_destruir(intvsAEliminar);
-      printf("NODO AFTER: %d:%d\n", nodo->intv->izq, nodo->intv->der);
+  } else if (comparar_intervalos(intv, nodo->intv) < 0) { // El intervalo a insertar es menor que el nodo actual.
+    /* Si puede agregarse al intervalo de un nodo existente, lo hace. */
+    if ((long)(intv->der)+1 >= nodo->intv->izq) {
+      nodo = agregar_a_intv_existente(nodo, intv, 1);
       return nodo;
-    } else {
-    nodo->left = set_insertar(nodo->left, intv);
-    }
-  } else if (comparar_intervalos(intv, nodo->intv) > 0) {
-    puts("comparar_intervalos > 0");
-    if (((long)(intv->izq))-1 <= nodo->intv->der) {
-      puts("attach por lado derecho");
-      Pila intvsAEliminar = pila_crear();
-      printf("buscar_repeticiones(nodo->right): %d:%d VS. %d:%d\n", nodo->intv->izq, nodo->intv->der, intv->izq, intv->der);
-      int nodoIzq = nodo->intv->izq;
-      union_ints(nodo, intv);
-      nodo->max = calcular_max(nodo);
-      nodo->min = calcular_min(nodo);
-      // nodo->right = 
-      buscar_repeticiones(nodo->right, nodo, &intvsAEliminar);
-      if (intv->izq < nodoIzq) {
-        // nodo->left = 
-        buscar_repeticiones(nodo->left, nodo, &intvsAEliminar);
-      }
-      // pila_imprimir(intvsAEliminar, imprimir_intv);
-      while (!pila_es_vacia(intvsAEliminar)) {
-        nodo = set_eliminar(nodo, pila_ultimo(intvsAEliminar));
-        pila_desapilar(&intvsAEliminar);
-      }
-      pila_destruir(intvsAEliminar);
-      printf("NODO AFTER: %d:%d\n", nodo->intv->izq, nodo->intv->der);
+    } else
+      nodo->left = set_insertar(nodo->left, intv);
+  } else if (comparar_intervalos(intv, nodo->intv) > 0) { // El intervalo a insertar mayor que el nodo actual.
+    /* Si puede agregarse al intervalo de un nodo existente, lo hace. */
+    if ((long)(intv->izq)-1 <= nodo->intv->der) {
+      nodo = agregar_a_intv_existente(nodo, intv, 0);
       return nodo;
-    } else {
+    } else
     nodo->right = set_insertar(nodo->right, intv);
-    }
-  } else {
-    puts("comparar_intervalos == 0");
-    /* Si el intervalo a insertar ya está en el árbol, no se inserta nada. */
+  } else
+    /* Si el intervalo a insertar está contenido en el nodo, no es necesario insertar nada en el Set. */
     return nodo;
-  }
   /* El programa entrará en esta sección de la función solo si se llamó a sí misma
-  recursivamente en el subárbol izquierdo o derecho. Si el intervalo no está presente en el árbol, 
-  la recursión desciende hasta alguna hoja del mismo donde se insertará el elemento, y luego 
-  las alturas y máximos se irán actualizando desde abajo hacia arriba. */
+  recursivamente en el subárbol izquierdo o derecho. Acá se recalculan las alturas, máximos
+  y mínimos de los nodos, y se balancea el árbol en caso de ser necesario. */
   nodo->altura = 1 + maximo(itree_altura(nodo->left), itree_altura(nodo->right));
   nodo->max = calcular_max(nodo);
   nodo->min = calcular_min(nodo);
-  /* Se calcula el factor balance del nodo, y en caso de desbalanceo se realizan las rotaciones correspondientes. */
+  /* Se calcula el factor de balance del nodo, y en caso de desbalanceose realizan las rotaciones correspondientes. */
   int balance = itree_balance_factor(nodo);
   if (balance < -1) {
     /* Si el subárbol izquierdo es de menor altura que el derecho, y el nuevo elemento
@@ -300,23 +238,24 @@ Set set_insertar(Set nodo, Intervalo *intv) {
 }
 
 
-/* set_eliminar elimina un nodo si está presente en el Set, y luego
-realiza las rotaciones correspondientes si el árbol resultante está desbalanceado. */
+/* Elimina el intervalo pasado como parámetro si es exactamente igual 
+al intervalo de algún nodo del Set, y luego realiza las rotaciones 
+correspondientes si el árbol resultante está desbalanceado. */
 Set set_eliminar(Set nodo, Intervalo *intv) {
   if (!set_empty(nodo)) {
-    if (nodo->intv->izq == intv->izq && nodo->intv->der == intv->der) { // Si el nodo actual es el nodo a eliminar.
-      /* A continuación se distinguen los casos en los que el nodo tiene ninguno, uno o dos hijos no NULL.
-      Los dos primeros casos son triviales, y en el caso donde tiene dos hijos no NULL,
-      el nodo a eliminar se reemplaza por el mínimo nodo del subárbol derecho. */
+    if (nodo->intv->izq == intv->izq && nodo->intv->der == intv->der) {
+      /* En este caso, el nodo actual es el nodo a eliminar. Se distinguen los casos 
+      en los que el nodo tiene ninguno, uno o dos hijos no NULL. Los dos primeros
+      son triviales, y en el caso donde tiene dos hijos no NULL, el nodo a eliminar 
+      se reemplaza por el mínimo nodo del subárbol derecho. */
       if (set_empty(nodo->left) && set_empty(nodo->right)) {
         free(nodo->intv);
         free(nodo);
         nodo = NULL;
       } else if (!set_empty(nodo->left) && !set_empty(nodo->right)) {
         Set minNodoDerecho = nodo->right;
-        while (!set_empty(minNodoDerecho->left)) {
+        while (!set_empty(minNodoDerecho->left))
           minNodoDerecho = minNodoDerecho->left;
-        }
         nodo->intv->izq = minNodoDerecho->intv->izq;
         nodo->intv->der = minNodoDerecho->intv->der;
         nodo->right = set_eliminar(nodo->right, minNodoDerecho->intv);
@@ -326,25 +265,19 @@ Set set_eliminar(Set nodo, Intervalo *intv) {
         free(nodo);
         nodo = hijoNoNULL;
       }
-    // } else if (comparar_intervalos(intv, nodo->intv) < 0) {
-      /* Si el intervalo a eliminar es menor según el orden lexicográfico, si está
-      en el árbol estará en el subárbol izquierdo, por lo que se llama a la función
-      recursivamente sobre el subárbol izquierdo. */
-      // nodo->left = set_eliminar(nodo->left, intv);
     } else {
+      /* Si el nodo actual no es el nodo a eliminar, se sigue recorriendo el Set. */
       nodo->left = set_eliminar(nodo->left, intv);
-      /* En caso contrario, si el intervalo a eliminar es un nodo del árbol, 
-      estará en el subárbol derecho. */
       nodo->right = set_eliminar(nodo->right, intv);
     }
   }
   if (set_empty(nodo))
     return nodo;
-  /* Se actualizan la altura y el máximo del árbol. */
+  /* Se actualizan la altura, el máximo y el mínimo del nodo. */
   nodo->altura = 1 + maximo(itree_altura(nodo->left),itree_altura(nodo->right));
   nodo->max = calcular_max(nodo);
   nodo->min = calcular_min(nodo);
-  /* Se calcula el factor balance del árbol, y en caso de desbalanceo se realizan las rotaciones correspondientes. */
+  /* Se calcula el factor de balance del nodo, y en caso de desbalanceo se realizan las rotaciones correspondientes. */
   int balance = itree_balance_factor(nodo);
   if (balance < -1) {
     /* Si el subárbol izquierdo es de menor altura que el derecho (y está desbalanceado), y lo mismo sucede
@@ -371,27 +304,37 @@ Set set_eliminar(Set nodo, Intervalo *intv) {
 }
 
 
-void set_imprimir_aux(Set tree, int max) {
-  if (tree) {
-    set_imprimir_aux(tree->left, max);
-    imprimir_intv(tree->intv);printf("(%d)", tree->altura);
-    if (tree->intv->der != max)
+/* Imprime un intervalo. Si los extremos son iguales, imprime 
+solo un extremo, y si no, imprime ambos separados por ":". */
+void imprimir_intv(void* intv) {
+  if (((Intervalo*)intv)->izq == ((Intervalo*)intv)->der)
+    printf("%d", ((Intervalo*)intv)->izq);
+  else
+    printf("%d:%d", ((Intervalo*)intv)->izq, ((Intervalo*)intv)->der);
+}
+
+/* Función auxiliar para imprimir recursivamente un Set. */
+void set_imprimir_aux(Set set, int max) {
+  if (set) {
+    set_imprimir_aux(set->left, max);
+    imprimir_intv(set->intv);
+    /* Si el extremo derecho es igual al máximo, es el último nodo del árbol,
+    ya que los intervalos del árbol son disjuntos dos a dos. */
+    if (set->intv->der != max)
       printf(",");
-    set_imprimir_aux(tree->right, max);
+    set_imprimir_aux(set->right, max);
   }
 }
 
-
-void set_imprimir(Set tree) {
-  if (tree) {
-    set_imprimir_aux(tree, tree->max);
-    // puts("");
-  }
+void set_imprimir(Set set) {
+  if (set)
+    set_imprimir_aux(set, set->max);
   else
     printf("{}");
 }
 
 
+/* Función auxiliar para clonar recursivamente un Set. */
 Set set_clonar_aux(Set resultado, Set nodo) {
   if (set_empty(nodo))
     return resultado;
@@ -401,51 +344,53 @@ Set set_clonar_aux(Set resultado, Set nodo) {
   return resultado;
 }
 
-Set set_clonar(Set arbol) {
-    if (set_empty(arbol))
+Set set_clonar(Set set) {
+    if (set_empty(set))
         return set_crear();
     Set resultado = set_crear();
-    resultado = set_clonar_aux(resultado, arbol);
+    resultado = set_clonar_aux(resultado, set);
     return resultado;
 }
 
-
-Set unir_arboles(Set resultado, Set menorAltura) {
+/* Agrega recursivamente los nodos de menorAltura en mayorAltura. */
+Set unir_sets(Set resultado, Set menorAltura) {
   if (set_empty(menorAltura))
     return resultado;
   resultado = set_insertar(resultado, menorAltura->intv);
-  resultado = unir_arboles(resultado, menorAltura->left);
-  resultado = unir_arboles(resultado, menorAltura->right);
+  resultado = unir_sets(resultado, menorAltura->left);
+  resultado = unir_sets(resultado, menorAltura->right);
   return resultado;
 }
 
-Set set_union(Set arbol1, Set arbol2) {
-  if (set_empty(arbol1) || set_empty(arbol2)) {
-    Set resultado = set_clonar((set_empty(arbol1)) ? arbol2 : arbol1);
+Set set_union(Set set1, Set set2) {
+  if (set_empty(set1) || set_empty(set2)) {
+    Set resultado = set_clonar((set_empty(set1)) ? set2 : set1);
     return resultado;
   }
-  Set menorAltura = (arbol2->altura < arbol1->altura) ? arbol2 : arbol1;
-  Set mayorAltura = (arbol2->altura < arbol1->altura) ? arbol1 : arbol2;
+  /* Se distingue el árbol de mayor altura del menor altura. */
+  Set menorAltura = (set2->altura < set1->altura) ? set2 : set1;
+  Set mayorAltura = (set2->altura < set1->altura) ? set1 : set2;
+  /* Se crea una copia del Set de mayor altura, y luego se agregar los elementos de menorAltura a él. */
   Set resultado = set_clonar(mayorAltura);
-  printf("union: mayorAltura: "); set_imprimir(mayorAltura); puts("");
-  set_imprimir(resultado); puts("");
-  resultado = unir_arboles(resultado, menorAltura);
+  resultado = unir_sets(resultado, menorAltura);
   return resultado;
 }
 
 
+/* Función auxiliar en la generación del complemento de un Set. */
 Set generar_complemento(Set resultado, Set nodo, Intervalo* intv) {
   if (set_empty(nodo))
     return resultado;
+  /* En ambos condicionales, si existen enteros entre los intervalos 
+  de dos nodos consecutivos (según el recorrido in-order), 
+  se agregan al complemento, y se continúa recorriendo el Set. */
   if (nodo->left && nodo->left->max+1 < nodo->intv->izq) {
-    // puts("generar_comp: existe nodo-left");
     intv->izq = nodo->left->max+1;
     intv->der = nodo->intv->izq-1;
     resultado = set_insertar(resultado, intv);
     resultado = generar_complemento(resultado, nodo->left, intv);
   }
   if (nodo->right && nodo->right->min-1 > nodo->intv->der) {
-    // puts("generar_comp: existe nodo-right");
     intv->izq = nodo->intv->der+1;
     intv->der = nodo->right->min-1;
     resultado = set_insertar(resultado, intv);
@@ -454,124 +399,81 @@ Set generar_complemento(Set resultado, Set nodo, Intervalo* intv) {
   return resultado;
 }
 
-Set set_complemento(Set arbol) {
+Set set_complemento(Set set) {
   Set resultado = set_crear();
   Intervalo* intv = malloc(sizeof(Intervalo));
-  if (set_empty(arbol)) {
-    // puts("Arbol vacío?");
+  if (set_empty(set)) { // Si el Set es vacío, el complemento es todo el universo.
     intv->izq = INT_MIN;
     intv->der = INT_MAX;
     resultado = set_insertar(resultado, intv);
   } else {
-    if (arbol->min != INT_MIN) {
-      // puts("Left side");
+    /* Si los extremos mínimos y máximos del Set son distintos de los extremos 
+    del universo, se agregan al complemento los intervalos correspondientes. */
+    if (set->min != INT_MIN) {
       intv->izq = INT_MIN;
-      intv->der = arbol->min - 1;
-      // printf("%d:%d\n", intv->izq, intv->der);
+      intv->der = set->min - 1;
       resultado = set_insertar(resultado, intv);
     }
-    if (arbol->max != INT_MAX) {
-      // puts("Right side");
-      intv->izq = arbol->max + 1;
+    if (set->max != INT_MAX) {
+      intv->izq = set->max + 1;
       intv->der = INT_MAX;
-      // printf("%d:%d\n", intv->izq, intv->der);
       resultado = set_insertar(resultado, intv);
     }
-    // printf("---- min: %d max: %d ---SEMI TERMINADDO: ", arbol->min, arbol->max); set_imprimir(arbol);
-    // printf("---- min: %d max: %d ---SEMI TERMINADDO: ", arbol->min, arbol->max); set_imprimir(resultado);
-    // puts("");
-    resultado = generar_complemento(resultado, arbol, intv);
-    // printf("---- min: %d max: %d --- TERMINADDO: ", arbol->min, arbol->max); set_imprimir(resultado);
+    resultado = generar_complemento(resultado, set, intv);
   }
   free(intv);
   return resultado;
 }
 
-int set_intersecar(Set arbol, Intervalo *intv, Intervalo* buffer) {
-  if (!set_empty(arbol)) {
-    printf("set_intersecar: %d:%d\n", intv->izq, intv->der);
-    // if (intv->der < arbol->intv->izq || intv->izq > arbol->intv->der) { /* El intervalo no se interseca con la raíz. */
-      if (!hay_interseccion(arbol->intv, intv)) {
-      /* Si su subárbol izquierdo es no vacío y si el máximo del subárbol izquierdo es mayor o igual 
-      al extremo izquierdo del intervalo, entonces es seguro que habrá intersección en ese subárbol. (*) */
-      if (!set_empty(arbol->left) && intv->izq <= arbol->left->max && intv->der >= arbol->left->min)
-        return set_intersecar(arbol->left, intv, buffer);
-      /* (Si intv->izq es mayor que el ext. derecho de la raíz) Si su subárbol derecho es no vacío y si el máximo 
-      del subárbol derecho es mayor o igual a intv->izq, entonces es posible que haya intersección en ese subárbol. */
-      else if (intv->izq > arbol->intv->der && !set_empty(arbol->right) && intv->izq <= arbol->right->max && intv->der >= arbol->right->min)
-        return set_intersecar(arbol->right, intv, buffer);
-      else 
-        return 0;
-    } else { // En caso contrario, se interseca con el intervalo de la raíz.
-      buffer->izq = (arbol->intv->izq > intv->izq) ? arbol->intv->izq : intv->izq;
-      buffer->der = (arbol->intv->der < intv->der) ? arbol->intv->der : intv->der;
-      return 1;
-    }
-  } else
-    return 0;
-}
 
-
-Set generar_interseccion(Set resultado, Set menorRango, Set mayorRango, Intervalo* intv) {
-  if (set_empty(mayorRango))
+/* Busca y agrega a resultado todas las intersecciones de intv con los elementos de set. */
+Set set_intersecar(Set set, Intervalo *intv, Intervalo* buffer, Set resultado) {
+  if (set_empty(set))
     return resultado;
-  printf("generar intersección: %d:%d\n", mayorRango->intv->izq, mayorRango->intv->der);
-  if (set_intersecar(menorRango, mayorRango->intv, intv)) {
-    // set_imprimir(menorRango);
-    printf("Intersección entre %d:%d y %d:%d -> %d:%d\n", menorRango->intv->izq, menorRango->intv->der, mayorRango->intv->izq, mayorRango->intv->der, intv->izq, intv->der);
-    resultado = set_insertar(resultado, intv);
+  if (hay_interseccion(set->intv, intv)) {
+    buffer->izq = (set->intv->izq > intv->izq) ? set->intv->izq : intv->izq;
+    buffer->der = (set->intv->der < intv->der) ? set->intv->der : intv->der;
+    resultado = set_insertar(resultado, buffer);
   }
-  resultado = generar_interseccion(resultado, menorRango, mayorRango->left, intv);
-  resultado = generar_interseccion(resultado, menorRango, mayorRango->right, intv);
+  /* Verifica si es posible que haya intersección en los subárboles,
+  y, en caso de serlo, continúa la búsqueda. */
+  if (!set_empty(set->left) && intv->izq <= set->left->max && intv->der >= set->left->min)
+    resultado = set_intersecar(set->left, intv, buffer, resultado);
+  if (!set_empty(set->right) && intv->izq <= set->right->max && intv->der >= set->right->min)
+    resultado = set_intersecar(set->right, intv, buffer, resultado);
   return resultado;
-  
 }
 
-Set set_interseccion(Set arbol1, Set arbol2) {
-  if (set_empty(arbol1) || set_empty(arbol2))
+/* Función auxiliar que interseca dos sets recursivamente. */
+Set generar_interseccion(Set resultado, Set mayorAltura, Set menorAltura, Intervalo* intv) {
+  if (set_empty(menorAltura))
+    return resultado;
+  resultado = set_intersecar(mayorAltura, menorAltura->intv, intv, resultado);
+  resultado = generar_interseccion(resultado, mayorAltura, menorAltura->left, intv);
+  resultado = generar_interseccion(resultado, mayorAltura, menorAltura->right, intv);
+  return resultado;
+}
+
+Set set_interseccion(Set set1, Set set2) {
+  if (set_empty(set1) || set_empty(set2))
     return NULL;
-  Set menorRango = ((long)(arbol1->max) - arbol1->min > (long)(arbol2->max) - arbol2->min) ? arbol2 : arbol1;
-  Set mayorRango = ((long)(arbol1->max) - arbol1->min > (long)(arbol2->max) - arbol2->min) ? arbol1 : arbol2;
-  printf("Intersecar menorRango: "); set_imprimir(menorRango); printf("con mayorRango: "); set_imprimir(mayorRango); puts("");
-  // printf("Mayor rango min: %d - max: %d\n", mayorRango->min, mayorRango->max); 
-  // printf("Menor rango min: %d - max: %d\n", menorRango->min, menorRango->max); 
-  // printf("Mayor rango: "); set_imprimir(mayorRango); puts("");
-  // printf("Menor rango: "); set_imprimir(menorRango);  puts("");
+  /* Se distingue el árbol de mayor altura del menor altura. */
+  Set menorAltura = (set2->altura < set1->altura) ? set2 : set1;
+  Set mayorAltura = (set2->altura < set1->altura) ? set1 : set2;
   Intervalo* intv = malloc(sizeof(Intervalo));
   Set resultado = set_crear();
-  resultado = generar_interseccion(resultado, menorRango, mayorRango, intv);
-
+  resultado = generar_interseccion(resultado, mayorAltura, menorAltura, intv);
   free(intv);
   return resultado;
 }
 
-// resultado = arbol1 - arbol2
-Set set_resta(Set arbol1, Set arbol2) {
+
+/* Teniendo en cuenta que la diferencia de A con B es matemáticamente igual a la
+intersección de A con el complemento de B, set_resta devuelve el resultado de 
+restar set2 a set1.  */
+Set set_resta(Set set1, Set set2) {
   Set resultado = set_crear();
-  resultado = set_complemento(arbol2);
-  resultado = set_interseccion(arbol1, resultado);
-  return resultado;
-}
-
-
-
-// TO DELETE
-Set set_crear_sucesion(FunGeneradora generar, Numeros direccion, int posInicial) {
-  long elem = posInicial;
-  Set resultado = set_crear();
-  Intervalo* intv = malloc(sizeof(Intervalo));
-  // resultado = set_insertar(resultado, posInicial);
-  while (elem < INT_MAX) {
-    intv->izq = (direccion == Negativos) ? -elem : elem;
-    intv->der = (direccion == Negativos) ? -elem : elem;
-    resultado = set_insertar(resultado, intv);
-    if (direccion == Ambos) {
-      intv->izq = -elem;
-      intv->der = -elem;
-      resultado = set_insertar(resultado, intv);
-    }
-    elem = generar(elem);
-  }
-  free(intv);
+  resultado = set_complemento(set2);
+  resultado = set_interseccion(set1, resultado);
   return resultado;
 }
