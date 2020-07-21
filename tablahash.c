@@ -35,7 +35,7 @@ void tablahash_insertar(TablaHash* tabla, void* clave, void* dato) {
   if (tabla->tabla[idx].clave) {
     // Si la casilla a utilizar tiene un dato, lo destruye.
     if (tabla->destClaves)
-      tabla->destClaves(tabla->tabla[idx].dato);
+      tabla->destClaves(tabla->tabla[idx].clave);
     if (tabla->destDatos)
       tabla->destDatos(tabla->tabla[idx].dato);
   } else
@@ -138,13 +138,8 @@ void tablahash_destruir(TablaHash* tabla) {
   destruyen las claves y/o datos correspondientes. */
   for (unsigned i=0; i<tabla->capacidad && j<tabla->numElems; i++) {
     if (tabla->tabla[i].clave) {
-      if (hayDestClaves) {
-        puts("Holaaanaoj");
-        printf("%s\n", (char*)(tabla->tabla[i].clave));
-        // tabla->destClaves(tabla->tabla[i].clave);
-        free(tabla->tabla[i].clave);
-        printf("%s\n", (char*)(tabla->tabla[i].clave));
-      }
+      if (hayDestClaves)
+        tabla->destClaves(tabla->tabla[i].clave);
       if (hayDestDatos)
         tabla->destDatos(tabla->tabla[i].dato);
       j++;

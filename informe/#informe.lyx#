@@ -229,7 +229,11 @@ Introducción
 \begin_layout Standard
 A continuación, se detallan las decisiones en general y particularidades
  en el proceso de diseño y desarrollo del Intérprete.
- El manejo de la memoria fue optimizado con la 
+ El Trabajo Práctico fue realizado en su totalidad en el sistema operativo
+ Mac OS 10.15.6.
+ Se testeó tanto en Mac OS como en Ubuntu 18.04 LTS.
+ Además, se monitoreó y optimizó el manejo de la memoria corriendo el programa
+ con Valgrind en la misma versión de Ubuntu.
 \end_layout
 
 \begin_layout Section
@@ -240,8 +244,89 @@ Estructuras de Datos Utilizadas
 Conjuntos
 \end_layout
 
+\begin_layout Standard
+Se decidió implementar conjuntos de enteros en C mediante árboles AVL de
+ intervalos.
+ Si bien los elementos de cada conjunto son enteros en su naturaleza, juntar
+ enteros consecutivos en intervalos permite optimizar y unificar completamente
+ la creación de conjuntos por comprensión y por extensión.
+ Al crear un conjunto por comprensión, simplemente se inserta el intervalo
+ correspondiente en un árbol (o no, si el conjunto ingresado es vacío).
+ Por otro lado, al crear por extensión, se comienza insertando los elementos
+ como intervalos unitarios, y la función que inserta elementos en el árbol
+ une intervalos que se intersequen o sean consecutivos, y posteriormente
+ busca repeticiones de algún intervalo contenido en ese en los subárboles.
+ Esto resulta en que, en un árbol dado, todos los intervalos que lo componen
+ son disjuntos dos a dos, no repitiéndose ningún entero.
+ Además, la impresión de un conjunto es óptima, al estar unidos todos los
+ intervalos de enteros consecutivos.
+\end_layout
+
+\begin_layout Standard
+Implementar conjuntos de esta manera tiene la ventaja de que, siendo 
+\begin_inset Formula $n$
+\end_inset
+
+ la cantidad de nodos que posee el árbol que representa al conjunto, las
+ operaciones de inserción y eliminación son 
+\begin_inset Formula $O(\log n)$
+\end_inset
+
+, es decir, proporcionales a la altura del árbol.
+ Como estas dos operaciones son las básicas de un árbol binario, la elección
+ de esta estructura presenta una optimización general en el cálculo de operacion
+es entre conjuntos, en contraposición con, por ejemplo, listas enlazadas.
+\end_layout
+
 \begin_layout Subsection
 Almacenamiento de Conjuntos en Memoria
+\end_layout
+
+\begin_layout Standard
+Se utilizan Tablas Hash para almacenar los conjuntos ingresados en memoria.
+ Las Tablas Hash implementadas presentan las siguientes características:
+\end_layout
+
+\begin_layout Itemize
+El tamaño inicial de la tabla utilizada en el Intérprete es 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|HASH_TABLE_DEF_SIZE|
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Formula $=32=2^{5}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+Una vez que el factor de carga de la tabla supera 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|LIM_FACTOR_CARGA|
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Formula $=0.75$
+\end_inset
+
+, se
 \end_layout
 
 \begin_layout Subsection

@@ -222,16 +222,18 @@ end{titlepage}
 
 \end_layout
 
-\begin_layout Standard
-\begin_inset Formula $\ $
-\end_inset
-
-
+\begin_layout Section
+Introducción
 \end_layout
 
 \begin_layout Standard
 A continuación, se detallan las decisiones en general y particularidades
- en el proceso de diseño, desarrollo y testeo del programa Intérprete.
+ en el proceso de diseño y desarrollo del Intérprete.
+ El Trabajo Práctico fue realizado en su totalidad en el sistema operativo
+ Mac OS 10.15.6.
+ Se testeó tanto en Mac OS como en Ubuntu 18.04 LTS.
+ Además, se monitoreó y optimizó el manejo de la memoria corriendo el programa
+ con Valgrind en la misma versión de Ubuntu.
 \end_layout
 
 \begin_layout Section
@@ -242,8 +244,158 @@ Estructuras de Datos Utilizadas
 Conjuntos
 \end_layout
 
+\begin_layout Standard
+Se decidió implementar conjuntos de enteros en C mediante árboles AVL de
+ intervalos.
+ Si bien los elementos de cada conjunto son enteros en su naturaleza, juntar
+ enteros consecutivos en intervalos permite optimizar y unificar completamente
+ la creación de conjuntos por comprensión y por extensión.
+ Al crear un conjunto por comprensión, simplemente se inserta el intervalo
+ correspondiente en un árbol (o no, si el conjunto ingresado es vacío).
+ Por otro lado, al crear por extensión, se comienza insertando los elementos
+ como intervalos unitarios, y la función que inserta elementos en el árbol
+ une intervalos que se intersequen o sean consecutivos, y posteriormente
+ busca repeticiones de algún intervalo contenido en ese en los subárboles.
+ Esto resulta en que, en un árbol dado, todos los intervalos que lo componen
+ son disjuntos dos a dos, no repitiéndose ningún entero.
+ Además, la impresión de un conjunto es óptima, al estar unidos todos los
+ intervalos de enteros consecutivos.
+\end_layout
+
+\begin_layout Standard
+Implementar conjuntos de esta manera tiene la ventaja de que, siendo 
+\begin_inset Formula $n$
+\end_inset
+
+ la cantidad de nodos que posee el árbol que representa al conjunto, las
+ operaciones de inserción y eliminación son 
+\begin_inset Formula $O(\log n)$
+\end_inset
+
+ en tiempo, es decir, proporcionales a la altura del árbol.
+ Como estas dos operaciones son las básicas de un árbol binario, la elección
+ de esta estructura presenta una optimización general en el cálculo de operacion
+es entre conjuntos, en contraposición con, por ejemplo, listas enlazadas.
+\end_layout
+
 \begin_layout Subsection
 Almacenamiento de Conjuntos en Memoria
+\end_layout
+
+\begin_layout Standard
+Se utilizan Tablas Hash para almacenar los conjuntos ingresados en memoria.
+ Las Tablas Hash implementadas presentan las siguientes características:
+\end_layout
+
+\begin_layout Itemize
+El tamaño inicial de la tabla utilizada en el Intérprete es 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|HASH_TABLE_DEF_SIZE|
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Formula $=32=2^{5}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+Una vez que el factor de carga de la tabla supera 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|LIM_FACTOR_CARGA|
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Formula $=0.75$
+\end_inset
+
+, se procede a redimensionarla, duplicando la capacidad de la misma.
+\end_layout
+
+\begin_layout Itemize
+Se utiliza una segunda función de hash en caso de que la casilla accedida
+ esté ocupada, la cual devuelve el valor 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|INTV_HASH_DOBLE|
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Formula $=7$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Se puede observar que como el tamaño inicial de la tabla (y todos los tamaños
+ resultantes de redimensionarla) son potencias de 2, y el intervalo de sondeo
+ es el número primo 7, siempre se recorrerán todas las casillas de la tabla
+ en busca de un lugar disponible.
+ Efectivamente, tomando el tamaño de la tabla 
+\begin_inset Formula $N=2^{r}$
+\end_inset
+
+ (con 
+\begin_inset Formula $r\geq5$
+\end_inset
+
+) en un momento dado, sus divisores son de la forma 
+\begin_inset Formula $2^{k},\ 0\leq k\leq r$
+\end_inset
+
+, todos pares.
+ Entonces, el tamaño de la tabla y 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|INTV_HASH_DOBLE|
+\end_layout
+
+\end_inset
+
+ son primos relativos, quedando demostrado.
+\end_layout
+
+\begin_layout Standard
+La elección de Tabla Hash como estructura para almacenar los conjuntos permite
+ acceder rápidamente a la casilla con la clave dada, así como también insertar
+ y eliminar conjuntos eficientemente.
 \end_layout
 
 \begin_layout Subsection
