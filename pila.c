@@ -29,8 +29,9 @@ Pila pila_apilar(Pila pila, void* dato) {
 
 void pila_desapilar(Pila* pila) {
   assert(*pila != NULL);
-  free(*pila);
+  Pila nodoAEliminar = *pila;
   *pila = (*pila)->sig;
+  free(nodoAEliminar);
 }
 
 

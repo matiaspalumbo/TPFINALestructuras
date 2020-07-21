@@ -129,13 +129,16 @@ void tablahash_redimensionar(TablaHash* tabla) {
 void tablahash_destruir(TablaHash* tabla) {
   int hayDestClaves = tabla->destClaves != NULL;
   int hayDestDatos = tabla->destDatos != NULL;
+  int j=0;
   /* Si se especificaron funciones destructoras, se 
   destruyen las claves y/o datos correspondientes. */
-  for (unsigned i=0; i<tabla->capacidad; i++) {
-    if (tabla->tabla[i].clave != NULL && hayDestClaves) {
-      tabla->destClaves(tabla->tabla[i].clave);
+  for (unsigned i=0; i<tabla->capacidad && j<tabla->numElems; i++) {
+    if (tabla->tabla[i].clave) {
+      if (hayDestClaves)
+        tabla->destClaves(tabla->tabla[i].clave);
       if (hayDestDatos)
         tabla->destDatos(tabla->tabla[i].dato);
+      j++;
     }
   }
   /* Se libera la memoria requerida por la tabla. */

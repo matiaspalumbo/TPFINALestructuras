@@ -183,11 +183,13 @@ void validar_creacion_comprension(Estado* estado) {
       Intervalo* intv = malloc(sizeof(Intervalo));
       intv->izq = (int)(par[0]);
       intv->der = (int)(par[1]);
+      estado->elements = set_crear();
       estado->elements = set_insertar(estado->elements, intv);
       free(intv);
     }
   } else
     estado->tipoError = (!validar_elementos(par[0]) || !validar_elementos(par[1])) ? ElementosNoValidos : ComandoNoValido;
+  free(par);
 }
 
 
