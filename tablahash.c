@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
- 
+
+
 TablaHash* tablahash_crear(unsigned capacidad, FuncionHash hash, FuncionIgualdad iguales,
   FuncionDestructora destClaves, FuncionDestructora destDatos) {
   TablaHash* tabla = malloc(sizeof(TablaHash));
@@ -31,10 +32,13 @@ void tablahash_insertar(TablaHash* tabla, void* clave, void* dato) {
   // Recorre casillas hasta encontrar una disponible.
   while (tabla->tabla[idx].clave && !tabla->iguales(tabla->tabla[idx].clave, clave))
     idx = (idx+INTV_HASH_DOBLE) % tabla->capacidad; 
-  if (tabla->tabla[idx].clave && tabla->destDatos)
+  if (tabla->tabla[idx].clave) {
     // Si la casilla a utilizar tiene un dato, lo destruye.
-    tabla->destDatos(tabla->tabla[idx].dato);
-  else
+    if (tabla->destClaves)
+      tabla->destClaves(tabla->tabla[idx].dato);
+    if (tabla->destDatos)
+      tabla->destDatos(tabla->tabla[idx].dato);
+  } else
     tabla->numElems++;
   tabla->tabla[idx].clave = clave;
   tabla->tabla[idx].dato = dato;
@@ -134,8 +138,13 @@ void tablahash_destruir(TablaHash* tabla) {
   destruyen las claves y/o datos correspondientes. */
   for (unsigned i=0; i<tabla->capacidad && j<tabla->numElems; i++) {
     if (tabla->tabla[i].clave) {
-      if (hayDestClaves)
-        tabla->destClaves(tabla->tabla[i].clave);
+      if (hayDestClaves) {
+        puts("Holaaanaoj");
+        printf("%s\n", (char*)(tabla->tabla[i].clave));
+        // tabla->destClaves(tabla->tabla[i].clave);
+        free(tabla->tabla[i].clave);
+        printf("%s\n", (char*)(tabla->tabla[i].clave));
+      }
       if (hayDestDatos)
         tabla->destDatos(tabla->tabla[i].dato);
       j++;
