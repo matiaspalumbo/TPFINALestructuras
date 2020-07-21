@@ -5,8 +5,16 @@
 #include "set.h"
 #include "estado.h"
 
+/* Archivo de cabecera del Intérprete. */
 
-/* Función que encapsula el comportamiento del intérprete. */
+
+/* Función hash para strings. */
+unsigned long hashStrings(void *str);
+
+/* Determina si dos strings son iguales. */
+int igualesStr(void* clave1, void* clave2);
+
+/* Encapsula el comportamiento del intérprete. */
 void interface();
 
 

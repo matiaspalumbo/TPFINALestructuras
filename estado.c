@@ -89,8 +89,10 @@ void validar_impresion(Estado* estado, TablaHash* conjs) {
 }
 
 
-/* Valida el input en el caso de que sea probable que se pida el complemento de un conjunto. */
+/* Valida el input en el caso de que sea probable
+que se pida el complemento de un conjunto. */
 void validar_complemento(Estado* estado, TablaHash* conjs) {
+  /* Se contempla el caso en que el comando sea válido pero el conjunto no exista. */
   int cond = validar_conjunto(conjs, &(estado->alias[2][1])) != NULL;
   actualizar_estado(estado, Complemento, ConjuntoInexistente, cond);
 }
@@ -103,7 +105,8 @@ int validar_elementos(long long dato) {
 }
 
 
-/* Valida el input en el caso de que sea probable que se pida crear un conjunto por extensión. */
+/* Valida el input en el caso de que sea probable 
+que se pida crear un conjunto por extensión. */
 void validar_creacion_extension(Estado* estado) {
   if (strcmp(estado->alias[2], "{}") == 0) { // Si se quiere crear un conjunto vacío.
     estado->estadoInput = CrearPorExtension;
@@ -158,10 +161,17 @@ void validar_igualacion_conjuntos(Estado* estado, TablaHash* conjs) {
 }
 
 
+/* Valida el input en el caso de que sea probable 
+que se pida una operación binaria entre conjuntos. */
 void validar_operaciones(Estado* estado, TablaHash* conjs) {
   char oper, buffChar;
-  int numEscaneos = sscanf(estado->alias[2], "%s %c %s %c %s", estado->alias[0], &buffChar, estado->alias[1], &oper, estado->alias[2]);
-  if (numEscaneos == 5 && buffChar == '=' && validar_nombre(estado) && (oper == '-' || oper == '|' || oper == '&')) { // OPERACIONES BINARIAS
+  /* Si el comando es válido, se almacenan los conjuntos correspondientes en el Estado. */
+  int numEscaneos = sscanf(estado->alias[2], "%s %c %s %c %s", 
+    estado->alias[0], &buffChar, estado->alias[1], &oper, estado->alias[2]);
+  /* Se verifica que la operación y los conjuntos ingresados sean válidos. */
+  if (numEscaneos == 5 && buffChar == '=' && validar_nombre(estado) 
+    && (oper == '-' || oper == '|' || oper == '&')) {
+    /* Se contempla el caso en que el comando sea válido pero los conjuntos no existan. */
     int cond = validar_conjunto(conjs, estado->alias[1]) && validar_conjunto(conjs, estado->alias[2]);
     enum EstadoInput tipoOper = (oper == '-') ? (Resta) : ((oper == '|') ? Unir : Intersecar);
     actualizar_estado(estado, tipoOper, ConjuntoInexistente, cond);
@@ -170,14 +180,18 @@ void validar_operaciones(Estado* estado, TablaHash* conjs) {
 }
 
 
+
+/* Valida el input en el caso de que sea probable 
+que se pida crear un conjunto por comprensión. */
 void validar_creacion_comprension(Estado* estado) {
-  char c1, c2, c3, igual, lineSkip, emptyStr;
+  char c1, c2, lineSkip, emptyStr;
   long long *par = malloc(sizeof(long long)*2);
-  int numEscaneos = sscanf(estado->alias[2], "%s %c {%c : %lld <= %c <= %lld%c%c%c",
-    estado->alias[0], &igual, &c1, &(par[0]),
-    &c2, &(par[1]), &c3, &lineSkip, &emptyStr);
-  if (numEscaneos == 8 && validar_nombre(estado) && c1 == c2 && igual == '=' 
-    && c3 == '}' && validar_elementos(par[0]) && validar_elementos(par[1])) {
+  /* si el comando es válido, se almacenan los valores ingresados, 
+  y se crea el conjunto correspondiente. */
+  int numEscaneos = sscanf(estado->alias[2], "%s = {%c : %lld <= %c <= %lld}%c%c",
+    estado->alias[0], &c1, &(par[0]), &c2, &(par[1]), &lineSkip, &emptyStr);
+  if (numEscaneos == 6 && validar_nombre(estado) && c1 == c2
+    && validar_elementos(par[0]) && validar_elementos(par[1])) {
     estado->estadoInput = CrearPorComprension;
     if (par[0] <= par[1]) {
       Intervalo* intv = malloc(sizeof(Intervalo));
@@ -188,13 +202,23 @@ void validar_creacion_comprension(Estado* estado) {
       free(intv);
     }
   } else
+    /* Se contempla el caso en que los números ingresados no entran en un int. */
     estado->tipoError = (!validar_elementos(par[0]) || !validar_elementos(par[1])) ? ElementosNoValidos : ComandoNoValido;
   free(par);
 }
 
 
+/* validar_input encapsula las funciones de validación anteriores y las llama 
+de acuerdo a la cantidad de espacios detectados al ingresar el input. 
+Lo hace teniendo en cuenta los espacios que poseen por su naturaleza los comandos:
+  - 0 espacios: salir
+  - 1 espacio: imprimir
+  - 2 espacios: crear por extensión, complemento e igualar conjuntos
+  - 4 espacios: operación binaria
+  - 8 espacios: crear por extensión
+  - otra cantidad: el comando no es válido */
 void validar_input(TablaHash* conjs, Estado* estado) {
-  if (estado->numEspacios == 0 && strcmp(estado->alias[2], "salir\n") == 0)
+  if (estado->numEspacios == 0 && strcmp(estado->alias[2], "salir\n") == 0) // Salir
     estado->estadoInput = Salir;
   else if (estado->numEspacios == 1)
     validar_impresion(estado, conjs);
