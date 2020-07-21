@@ -34,7 +34,7 @@ void destruir_set(void* set) {
 
 /* Función destructora de claves en la tabla con conjuntos en memoria (destruye strings) */
 void destruir_alias(void* alias) {
-  free(alias);
+  free((char*)alias);
 }
 
 

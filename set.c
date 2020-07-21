@@ -473,7 +473,9 @@ intersección de A con el complemento de B, set_resta devuelve el resultado de
 restar set2 a set1.  */
 Set set_resta(Set set1, Set set2) {
   Set resultado = set_crear();
-  resultado = set_complemento(set2);
-  resultado = set_interseccion(set1, resultado);
+  Set complemento = set_crear();
+  complemento = set_complemento(set2);
+  resultado = set_interseccion(set1, complemento);
+  set_destruir(complemento);
   return resultado;
 }
