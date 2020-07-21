@@ -132,17 +132,14 @@ void validar_creacion_extension(Estado* estado) {
           estado->elements = set_insertar(estado->elements, intv);
         }
       }
-      if ((numEscaneos > 1 && c != ',') || numEscaneos < 1) {
-        printf("...%d - \n", numEscaneos);
+      if ((numEscaneos > 1 && c != ',') || numEscaneos < 1) { // El comando no es válido.
         estado->tipoError = ComandoNoValido;
         set_destruir(estado->elements);
-      } else if (elemNovalido) {
-        printf("%d - \n", numEscaneos);
+      } else if (elemNovalido) { // Algún elemento no es válido.
         estado->tipoError = ElementosNoValidos;
         set_destruir(estado->elements);
-      } else if (numEscaneos == 1) {
+      } else if (numEscaneos == 1)
         estado->estadoInput = CrearPorExtension;
-      }
       free(intv);
     } else
       estado->tipoError = ComandoNoValido;
@@ -150,6 +147,8 @@ void validar_creacion_extension(Estado* estado) {
 }
 
 
+/* Valida el input en el caso de que sea probable 
+que se pida crear un conjunto igual a otro existente. */
 void validar_igualacion_conjuntos(Estado* estado, TablaHash* conjs) {
   if (validar_conjunto(conjs, estado->alias[2])) {
     estado->elements = set_clonar(tablahash_buscar(conjs, estado->alias[2], Fetch));
