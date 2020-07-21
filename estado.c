@@ -25,14 +25,16 @@ void destruir_estado(Estado* estado) {
 
 void preparar_estado(Estado* estado) {
   estado->tipoError = NoError;
-  estado->estadoInput = Imprimir;
+  estado->estadoInput = Imprimir; // Se elige Imprimir como placeholder, al no tener ninguna acción pautada.
   estado->numEspacios = 0;
   estado->elements = NULL;
 }
 
 
+/* Si se verifica la condición, se actualiza estado->estadoInput. Sino,
+se actualiza estado->tipoError con los parámetros pasados. */
 void actualizar_estado(Estado* estado, enum EstadoInput estadoInput, enum TipoError error, int condicion) {
-  if (condicion) 
+  if (condicion)
     estado->estadoInput = estadoInput;
   else 
     estado->tipoError = error;
@@ -43,8 +45,11 @@ void get_input(Estado* estado) {
   char c = fgetc(stdin);
   size_t i = 0;
   for (; c != '\n'; i++) {
+    /* Se lleva la cuenta de los espacios presentes 
+    para facilitar la posterior validación del input. */
     if (c == ' ')
       estado->numEspacios++;
+    /* Si el input recibido excede el tamaño de los alias, se pide más memoria. */
     if (i == estado->sizeAlias-1) {
       estado->sizeAlias *= STR_INPUT_GROWTH_RATE;
       for (int j=0; j<3; j++)
@@ -53,23 +58,28 @@ void get_input(Estado* estado) {
     estado->alias[2][i] = c;
     c = fgetc(stdin);
   }
+  /* Se agrega un salto de línea para facilitar la posterior validación del input. */
   estado->alias[2][i] = '\n';
   estado->alias[2][i+1] = '\0';
   
 }
 
 
+/* Verifica si existe un conjunto con el nombre dado en la Tabla Hash. */
 void* validar_conjunto(TablaHash* listaConjuntos, char* conjunto) {
   return tablahash_buscar(listaConjuntos, conjunto, Check);
 }
 
 
+/* Verifica que el nombre del conjunto es válido. */
 int validar_nombre(Estado* estado) {
   return estado->alias[0][0] != '~' && estado->alias[0][0] != '{';
 } 
 
 
+/* Valida el input en el caso de que sea probable que se pida imprimir un conjunto. */
 void validar_impresion(Estado* estado, TablaHash* conjs) {
+  /* Si el comando es válido, se almacena el conjunto a imprimir en estado->alias[0]. */
   sscanf(estado->alias[2], "%s %[^\n]\n", estado->alias[1], estado->alias[0]);
   if (strcmp(estado->alias[1], "imprimir") == 0) {
     int cond = validar_conjunto(conjs, estado->alias[0]) && validar_nombre(estado);
@@ -79,55 +89,61 @@ void validar_impresion(Estado* estado, TablaHash* conjs) {
 }
 
 
+/* Valida el input en el caso de que sea probable que se pida el complemento de un conjunto. */
 void validar_complemento(Estado* estado, TablaHash* conjs) {
   int cond = validar_conjunto(conjs, &(estado->alias[2][1])) != NULL;
   actualizar_estado(estado, Complemento, ConjuntoInexistente, cond);
 }
 
 
+/* Verifica que los el dato dado respeta los límites
+para poder pertenecer a un conjunto de enteros. */
 int validar_elementos(long long dato) {
   return dato <= INT_MAX && dato >= INT_MIN;
 }
 
+
+/* Valida el input en el caso de que sea probable que se pida crear un conjunto por extensión. */
 void validar_creacion_extension(Estado* estado) {
-  if (strcmp(estado->alias[2], "{}") == 0) {
+  if (strcmp(estado->alias[2], "{}") == 0) { // Si se quiere crear un conjunto vacío.
     estado->estadoInput = CrearPorExtension;
   } else {
     char llave, finalLinea;
+    /* Si el comando es válido, se almacenan los números a escanear en estado->alias[2]. */
     int numEscaneos = sscanf(estado->alias[2], "{%[^}]%c%c", estado->alias[2], &llave, &finalLinea);
     if (numEscaneos == 2 && llave == '}') {
-      if (estado->alias[2][0] == '\0') {
-        estado->estadoInput = CrearPorExtension;
-      } else {
-        numEscaneos = 3;
-        char c = ',';
-        long long dato = 0;
-        int elemNovalido = 0;
-        estado->elements = set_crear();
-        Intervalo* intv = malloc(sizeof(Intervalo));
-        while (numEscaneos == 3 && c == ',') {
-          numEscaneos = sscanf(estado->alias[2], "%lld%c%s", &dato, &c, estado->alias[2]);
-          if (!validar_elementos(dato))
-            elemNovalido = 1;
-          if (numEscaneos > 0 && !elemNovalido) {
-            intv->izq = (int)dato;
-            intv->der = (int)dato;
-            estado->elements = set_insertar(estado->elements, intv);
-          }
+      numEscaneos = 3;
+      char c = ',';
+      /* El tipo de dato es long long para contemplar errores en
+      donde los números ingresados no respetan los límites de int. */
+      long long dato = 0;
+      /* Bandera que indica si algún número escaneado no puede ser expresado como int. */
+      int elemNovalido = 0;
+      estado->elements = set_crear();
+      Intervalo* intv = malloc(sizeof(Intervalo));
+       /* Se escanean los números hasta que el comando no sea válido o se termine el conjunto. */
+      while (numEscaneos == 3 && c == ',') {
+        numEscaneos = sscanf(estado->alias[2], "%lld%c%s", &dato, &c, estado->alias[2]);
+        if (!validar_elementos(dato))
+          elemNovalido = 1;
+        if (numEscaneos > 0 && !elemNovalido) {
+          intv->izq = (int)dato;
+          intv->der = (int)dato;
+          estado->elements = set_insertar(estado->elements, intv);
         }
-        if ((numEscaneos > 1 && c != ',') || numEscaneos < 1) {
-          printf("...%d - \n", numEscaneos);
-          estado->tipoError = ComandoNoValido;
-          set_destruir(estado->elements);
-        } else if (elemNovalido) {
-          printf("%d - \n", numEscaneos);
-          estado->tipoError = ElementosNoValidos;
-          set_destruir(estado->elements);
-        } else if (numEscaneos == 1) {
-          estado->estadoInput = CrearPorExtension;
-        }
-        free(intv);
       }
+      if ((numEscaneos > 1 && c != ',') || numEscaneos < 1) {
+        printf("...%d - \n", numEscaneos);
+        estado->tipoError = ComandoNoValido;
+        set_destruir(estado->elements);
+      } else if (elemNovalido) {
+        printf("%d - \n", numEscaneos);
+        estado->tipoError = ElementosNoValidos;
+        set_destruir(estado->elements);
+      } else if (numEscaneos == 1) {
+        estado->estadoInput = CrearPorExtension;
+      }
+      free(intv);
     } else
       estado->tipoError = ComandoNoValido;
   }
