@@ -191,7 +191,7 @@ void validar_creacion_comprension(Estado* estado) {
   int numEscaneos = sscanf(estado->alias[2], "%s = {%c : %lld <= %c <= %lld}%c%c",
     estado->alias[0], &c1, &(par[0]), &c2, &(par[1]), &lineSkip, &emptyStr);
   if (numEscaneos == 6 && validar_nombre(estado) && c1 == c2
-    && validar_elementos(par[0]) && validar_elementos(par[1])) {
+    && isalpha(c1) && validar_elementos(par[0]) && validar_elementos(par[1])) {
     estado->estadoInput = CrearPorComprension;
     if (par[0] <= par[1]) {
       Intervalo* intv = malloc(sizeof(Intervalo));

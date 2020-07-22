@@ -6,6 +6,7 @@
 \origin unavailable
 \textclass article
 \begin_preamble
+\usepackage{wrapfig}
 \usepackage{graphicx}
 \usepackage{titlesec}
 \usepackage{hyperref}
@@ -115,6 +116,10 @@ status open
 
 \backslash
 begin{titlepage}
+\end_layout
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \begin_layout Plain Layout
@@ -247,9 +252,9 @@ Conjuntos
 \begin_layout Standard
 Se decidió implementar conjuntos de enteros en C mediante árboles AVL de
  intervalos.
- Si bien los elementos de cada conjunto son enteros en su naturaleza, juntar
- enteros consecutivos en intervalos permite optimizar y unificar completamente
- la creación de conjuntos por comprensión y por extensión.
+ Si bien los elementos de cada conjunto son números enteros en su naturaleza,
+ juntar enteros consecutivos en intervalos permite optimizar y unificar
+ completamente la creación de conjuntos por comprensión y por extensión.
  Al crear un conjunto por comprensión, simplemente se inserta el intervalo
  correspondiente en un árbol (o no, si el conjunto ingresado es vacío).
  Por otro lado, al crear por extensión, se comienza insertando los elementos
@@ -272,7 +277,7 @@ Implementar conjuntos de esta manera tiene la ventaja de que, siendo
 \begin_inset Formula $O(\log n)$
 \end_inset
 
-, es decir, proporcionales a la altura del árbol.
+ en tiempo, es decir, proporcionales a la altura del árbol.
  Como estas dos operaciones son las básicas de un árbol binario, la elección
  de esta estructura presenta una optimización general en el cálculo de operacion
 es entre conjuntos, en contraposición con, por ejemplo, listas enlazadas.
@@ -326,11 +331,134 @@ verb|LIM_FACTOR_CARGA|
 \begin_inset Formula $=0.75$
 \end_inset
 
-, se
+, se procede a redimensionarla, duplicando la capacidad de la misma.
+\end_layout
+
+\begin_layout Itemize
+Se utiliza una segunda función de hash en caso de que la casilla accedida
+ esté ocupada, la cual devuelve el valor 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|INTV_HASH_DOBLE|
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Formula $=7$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Se puede observar que como el tamaño inicial de la tabla (y todos los tamaños
+ resultantes de redimensionarla) son potencias de 2, y el intervalo de sondeo
+ es el número primo 7, siempre se recorrerán todas las casillas de la tabla
+ en busca de un lugar disponible.
+ Efectivamente, tomando el tamaño de la tabla 
+\begin_inset Formula $N=2^{r}$
+\end_inset
+
+ (con 
+\begin_inset Formula $r\geq5$
+\end_inset
+
+) en un momento dado, sus divisores son de la forma 
+\begin_inset Formula $2^{k},\ 0\leq k\leq r$
+\end_inset
+
+, todos pares.
+ Entonces, el tamaño de la tabla y 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|INTV_HASH_DOBLE|
+\end_layout
+
+\end_inset
+
+ son primos relativos, quedando demostrado.
+\end_layout
+
+\begin_layout Standard
+La elección de Tabla Hash como estructura para almacenar los conjuntos permite
+ acceder rápidamente a la casilla con la clave dada, así como también insertar
+ y eliminar conjuntos eficientemente.
+ A su vez, se permite especificar funciones destructoras de claves y datos
+ para manejar adecuadamente la memoria al eliminar elementos y destruir
+ la tabla.
 \end_layout
 
 \begin_layout Subsection
-Otros
+Estado
+\end_layout
+
+\begin_layout Standard
+Se definen en el archivo de cabecera 
+\begin_inset Quotes qld
+\end_inset
+
+estado.h
+\begin_inset Quotes qld
+\end_inset
+
+ dos enum útiles para representar las acciones que el intérprete puede seguir.
+ El primero, 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|enum EstadoInput|
+\end_layout
+
+\end_inset
+
+, tiene un valor por cada comando válido del intérprete, es decir, cada
+ tipo de creación, imprimir un conjunto, salir, y realizar cada una de las
+ operaciones.
+ El otro, 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|enum TipoError|
+\end_layout
+
+\end_inset
+
+, es utilizado para representar los tipos de errores contemplados en el
+ uso del intérprete, explicados más detalladamente en la Sección 3.2.
+ 
+\end_layout
+
+\begin_layout Standard
+Adicionalmente, para mantener centralizadas en un mismo lugar las variables
+ necesitadas por el intérprete, se hace uso de la estructura Estado, la
+ cual guarda, entre otras cosas, los conjuntos con los cuales se opera,
+ y el conjunto a guardar en memoria.
 \end_layout
 
 \begin_layout Section
@@ -341,16 +469,668 @@ Particularidades del Intérprete
 Formatos Aceptados para los Alias
 \end_layout
 
+\begin_layout Standard
+A continuación se enumeran los comando considerados válidos en el intérprete.
+ Una observación importante es que no se premite crear conjuntos cuyo primer
+ caracter sea 
+\begin_inset Quotes qld
+\end_inset
+
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|~|
+\end_layout
+
+\end_inset
+
+
+\begin_inset Quotes qld
+\end_inset
+
+ o 
+\begin_inset Quotes qld
+\end_inset
+
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|{|
+\end_layout
+
+\end_inset
+
+
+\begin_inset Quotes qld
+\end_inset
+
+.
+ Hacerlo resultará en comandos considerados no válidos.
+ En el siguiente listado se asume que los alias de conjuntos creados son
+ válidos.
+\end_layout
+
+\begin_layout Itemize
+Salir: 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|salir|
+\end_layout
+
+\end_inset
+
+ (sale del intérprete).
+\end_layout
+
+\begin_layout Itemize
+Imprimir un conjunto: 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|imprimir alias|
+\end_layout
+
+\end_inset
+
+ (si existe 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias|
+\end_layout
+
+\end_inset
+
+, lo imprime en orden, expresando como intervalo las secciones del conjunto
+ que puedan serlo).
+\end_layout
+
+\begin_layout Itemize
+Creación de un conjunto por extensión: 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias = {1,2,3,4,5}|
+\end_layout
+
+\end_inset
+
+ (el alias seguido de 
+\begin_inset Quotes qld
+\end_inset
+
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb| = {|
+\end_layout
+
+\end_inset
+
+
+\begin_inset Quotes qld
+\end_inset
+
+ y una sucesión de enteros separados por coma terminada con 
+\begin_inset Quotes qld
+\end_inset
+
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|}|
+\end_layout
+
+\end_inset
+
+
+\begin_inset Quotes qld
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Itemize
+Creación de un conjunto por comprensión: 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias = {x : n1 <= x <= n2}|
+\end_layout
+
+\end_inset
+
+, donde 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|x|
+\end_layout
+
+\end_inset
+
+ puede ser cualquier letra, y 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|n1|
+\end_layout
+
+\end_inset
+
+ y 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|n2|
+\end_layout
+
+\end_inset
+
+ son enteros.
+ Si 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|n1|
+\end_layout
+
+\end_inset
+
+ es mayor que 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|n2|
+\end_layout
+
+\end_inset
+
+, el conjunto es considerado vacío.
+\end_layout
+
+\begin_layout Itemize
+Complemento de un conjunto: 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias1 = ~alias2|
+\end_layout
+
+\end_inset
+
+ (si existe 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias2|
+\end_layout
+
+\end_inset
+
+, calcula su complemento y lo almacena con el nombre 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias1|
+\end_layout
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Itemize
+Intersección entre conjuntos: 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias1 = alias2 & alias3|
+\end_layout
+
+\end_inset
+
+ (si existen 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias2|
+\end_layout
+
+\end_inset
+
+ y 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias3|
+\end_layout
+
+\end_inset
+
+, calcula su intersección y la almacena en 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias1|
+\end_layout
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Itemize
+Unión entre conjuntos: 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb!alias1 = alias2 | alias3!
+\end_layout
+
+\end_inset
+
+ (si existen 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias2|
+\end_layout
+
+\end_inset
+
+ y 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias3|
+\end_layout
+
+\end_inset
+
+, calcula su unión y la almacena en 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias1|
+\end_layout
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Itemize
+Resta de un conjunto con otro: 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias1 = alias2 - alias3|
+\end_layout
+
+\end_inset
+
+ (si existen 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias2|
+\end_layout
+
+\end_inset
+
+ y 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias3|
+\end_layout
+
+\end_inset
+
+, calcula 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias2 - alias3|
+\end_layout
+
+\end_inset
+
+, y lo almacena en 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias1|
+\end_layout
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Itemize
+Igualación de conjuntos: 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias1 = alias2|
+\end_layout
+
+\end_inset
+
+ (si existe 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias2|
+\end_layout
+
+\end_inset
+
+, crea una copia de él y la almacena en 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|alias1|
+\end_layout
+
+\end_inset
+
+).
+\end_layout
+
 \begin_layout Subsection
 Manejo de Errores
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|enum TipoError|
+\end_layout
+
+\end_inset
+
+ presenta los siguientes valores, cada uno permitendo distinguir distintos
+ tipos de errores: 
+\end_layout
+
+\begin_layout Itemize
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|NoError|
+\end_layout
+
+\end_inset
+
+: Ausencia de error.
+ Utilizado para inicializar y preparar el Estado.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|ComandoNoValido|
+\end_layout
+
+\end_inset
+
+: Contempla el caso en el que no se respete el formato preestablecido.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|ConjuntoInexistente|
+\end_layout
+
+\end_inset
+
+: Contempla el caso en el que el comando sea válido pero los conjuntos a
+ utilizar no existan.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|ElementosNoValidos|
+\end_layout
+
+\end_inset
+
+: Contempla el caso en el que al crear un conjunto se ingrese algún número
+ que supere los límites de enteros en C.
 \end_layout
 
 \begin_layout Section
 Compilación del Programa
 \end_layout
 
+\begin_layout Standard
+Los archivos necesarios en la compilación del programa y sus dependencias
+ se encuentran detallados en el archivo 
+\emph on
+makefile
+\emph default
+.
+ Para compilar el mismo, sólo es necesario correr cualquiera de los siguientes
+ dos comandos en la terminal: 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{verbatim}make
+\backslash
+end{verbatim}
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{verbatim}make interprete
+\backslash
+end{verbatim}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Luego, el intérprete se inicializa con el comando 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{verbatim}./interprete
+\backslash
+end{verbatim}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
-Dificultades Encontradas?
+Dificultades Encontradas
 \end_layout
 
 \begin_layout Section
