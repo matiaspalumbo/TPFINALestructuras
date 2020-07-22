@@ -126,142 +126,6 @@ begin{titlepage}
 
 
 \backslash
-begin{wrapfigure}{o}{0.25
-\backslash
-columnwidth}%
-\end_layout
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{centering} 
-\backslash
-includegraphics[scale=0.5]{logo}
-\backslash
-hspace*{
-\backslash
-fill}$
-\backslash
-begin{array}{r} 
-\backslash
-text{
-\backslash
-text{Facultad de Ciencias Exactas, Ingeniería y Agrimensura}}
-\backslash
-
-\backslash
- 
-\backslash
-text{
-\backslash
-text{Escuela de Ciencias Exactas y Naturales}}
-\backslash
-
-\backslash
- 
-\backslash
-text{
-\backslash
-text{Departamento de Ciencias de la Computación}}
-\backslash
-
-\backslash
- 
-\backslash
-text{
-\backslash
-text{Estructuras de Datos y Algoritmos I}} 
-\backslash
-end{array}$ 
-\backslash
-par
-\backslash
-end{centering} 
-\backslash
-end{wrapfigure}% 
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{flushright} Universidad Nacional de Rosario 
-\backslash
-par
-\backslash
-end{flushright}
-\end_layout
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{flushright} Facultad de Ciencias Exactas, Ingeniería y Agrimensura
- 
-\backslash
-par
-\backslash
-end{flushright}
-\end_layout
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{flushright} Escuela de Ciencias Exactas y Naturales 
-\backslash
-par
-\backslash
-end{flushright}
-\end_layout
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{flushright} Departamento de Ciencias de la Computación 
-\backslash
-par
-\backslash
-end{flushright}
-\end_layout
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{flushright} Estructuras de Datos y Algoritmos I 
-\backslash
-par
-\backslash
-end{flushright}
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-
-\backslash
 hspace{-1.2cm}
 \end_layout
 
@@ -363,11 +227,6 @@ end{titlepage}
 
 \end_layout
 
-\begin_layout Standard
-\align right
-ewifnweiognwe
-\end_layout
-
 \begin_layout Section
 Introducción
 \end_layout
@@ -393,9 +252,9 @@ Conjuntos
 \begin_layout Standard
 Se decidió implementar conjuntos de enteros en C mediante árboles AVL de
  intervalos.
- Si bien los elementos de cada conjunto son enteros en su naturaleza, juntar
- enteros consecutivos en intervalos permite optimizar y unificar completamente
- la creación de conjuntos por comprensión y por extensión.
+ Si bien los elementos de cada conjunto son números enteros en su naturaleza,
+ juntar enteros consecutivos en intervalos permite optimizar y unificar
+ completamente la creación de conjuntos por comprensión y por extensión.
  Al crear un conjunto por comprensión, simplemente se inserta el intervalo
  correspondiente en un árbol (o no, si el conjunto ingresado es vacío).
  Por otro lado, al crear por extensión, se comienza insertando los elementos
@@ -599,7 +458,7 @@ verb|enum TipoError|
 Adicionalmente, para mantener centralizadas en un mismo lugar las variables
  necesitadas por el intérprete, se hace uso de la estructura Estado, la
  cual guarda, entre otras cosas, los conjuntos con los cuales se opera,
- y el conjunto a guardar en memoria.
+ y el conjunto a guardar en memoria en caso de haberlo.
 \end_layout
 
 \begin_layout Section
@@ -612,7 +471,7 @@ Formatos Aceptados para los Alias
 
 \begin_layout Standard
 A continuación se enumeran los comando considerados válidos en el intérprete.
- Una observación importante es que no se premite crear conjuntos cuyo primer
+ Una observación importante es que no se permite crear conjuntos cuyo primer
  caracter sea 
 \begin_inset Quotes qld
 \end_inset
@@ -706,7 +565,20 @@ verb|alias|
 \end_inset
 
 , lo imprime en orden, expresando como intervalo las secciones del conjunto
- que puedan serlo).
+ que puedan serlo; los conjuntos vacíos se imprimen como 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|{}|
+\end_layout
+
+\end_inset
+
+).
 \end_layout
 
 \begin_layout Itemize
@@ -1135,11 +1007,11 @@ verb|enum TipoError|
 
 \end_inset
 
- presenta los siguientes valores, cada uno permitendo distinguir distintos
+ presenta los siguientes valores, cada uno permitiendo distinguir distintos
  tipos de errores: 
 \end_layout
 
-\begin_layout Itemize
+\begin_layout Enumerate
 \begin_inset ERT
 status open
 
@@ -1156,7 +1028,7 @@ verb|NoError|
  Utilizado para inicializar y preparar el Estado.
 \end_layout
 
-\begin_layout Itemize
+\begin_layout Enumerate
 \begin_inset ERT
 status open
 
@@ -1172,7 +1044,7 @@ verb|ComandoNoValido|
 : Contempla el caso en el que no se respete el formato preestablecido.
 \end_layout
 
-\begin_layout Itemize
+\begin_layout Enumerate
 \begin_inset ERT
 status open
 
@@ -1189,7 +1061,7 @@ verb|ConjuntoInexistente|
  utilizar no existan.
 \end_layout
 
-\begin_layout Itemize
+\begin_layout Enumerate
 \begin_inset ERT
 status open
 
@@ -1271,11 +1143,142 @@ end{verbatim}
 \end_layout
 
 \begin_layout Section
-Dificultades Encontradas
+Dificultades Encontradas e Información Adicional
+\end_layout
+
+\begin_layout Standard
+Las dos grandes dificultades encontradas considero que fueron elegir en
+ un principio la estructura para representar conjuntos, y poder idear una
+ buena función de hash para strings.
+ En cuanto a la elección de estructura para conjuntos, las dos principales
+ opciones que consideré fueron árboles AVL y listas enlazadas.
+ Al principio, comencé a diseñar las funciones de la implementación usando
+ listas, porque había algunas cosas concretas que no creía que pudiera implement
+ar con árboles.
+ Sin embargo, al investigar un poco más encontré que los árboles de altura
+ balanceada es una implementación muy utilizada para conjuntos, y considerableme
+nte más eficiente que las listas enlazadas.
+ Después de eso, me adentré más en los problemas que me traían dificultad
+ con los árboles; particularmente, general el complemento de un conjunto.
+\end_layout
+
+\begin_layout Standard
+Diseñando la función, llegué a la conclusión de que había que calcular los
+ intervalos presentes entre nodos consecutivos (según el recorrido in-order)
+ del árbol, y no encontraba manera de hacerlo.
+ En ese momento, cada nodo del árbol guardaba el extremo derecho máximo
+ del árbol del cual era raíz; esto lo había tomado del Trabajo Práctico
+ 2, y resultaba de utilidad al intersecar conjuntos.
+ Entonces, decidí agregar también el mínimo extremo izquierdo a cada nodo,
+ y descubrí que esto hacía posible los cálculos para calcular el complemento,
+ y también optimizaba aún más la intersección entre conjuntos.
+\end_layout
+
+\begin_layout Standard
+Con respecto a las funciones hash de strings, quería balancear simplicidad
+ y velocidad con una buena distribución de las claves, e investigando, descubrí
+ que alcanzar esto era bastante difícil; una función hash que distribuye
+ mejor las claves generalmente conlleva código más extenso y operaciones
+ más caras.
+ En la página citada en el ítem 5 de la Bibliografía, se presenta el algoritmo
+ de hash llamado 
+\emph on
+djb2
+\emph default
+, y utilizando esto en conjunto con la función presentada en K&R en la Sección
+ 6.6, obtuve una función hash simple y rápida de calcular, que además distribuye
+ las claves uniformemente para el propósito que se le da en este trabajo.
 \end_layout
 
 \begin_layout Section
 Bibliografía
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+The C Programming Language
+\emph default
+, Kernighan & Ritchie: Sección 6.6 (Table Lookup), Sección 7.4 (Formatted
+ Input).
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+Fundamentos de Algoritmia
+\emph default
+, G.
+ Brassard & .
+ Bratley: Sección 3 (Notación Asintótica).
+\end_layout
+
+\begin_layout Itemize
+Hash Table (Wikipedia): 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|https://en.wikipedia.org/wiki/Hash_table|
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Double Hashing (Wikipedia): 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|https://en.wikipedia.org/wiki/Double_hashing|
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Ejemplos de funciones hash: 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|http://www.cse.yorku.ca/~oz/hash.html|
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Sets (Wikipedia): 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+verb|https://en.wikipedia.org/wiki/Set_(abstract_data_type)|
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_body
