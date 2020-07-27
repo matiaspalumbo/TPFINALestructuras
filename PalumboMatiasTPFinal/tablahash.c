@@ -55,16 +55,17 @@ void* tablahash_buscar(TablaHash* tabla, void* clave, TipoBusqueda tipoBusqueda)
     while (newIdx != idx) {
       spot = &(tabla->tabla[newIdx]);
       if (spot->clave && !tabla->iguales(spot->clave, clave))
-        newIdx = (idx+INTV_HASH_DOBLE) % tabla->capacidad;
+        newIdx = (newIdx+INTV_HASH_DOBLE) % tabla->capacidad;
       else 
         idx = newIdx;
     }
   }
   /* Si el tipo de búsqueda es Fetch devuelve la clave. Caso contrario, devuelve el dato. */
-  if (spot->clave && tabla->iguales(clave, spot->clave))
+  if (spot->clave && tabla->iguales(clave, spot->clave)) {
     return (tipoBusqueda == Fetch) ? spot->dato : spot->clave;
-  else
+  }else {
     return NULL;
+  }
 }
 
 
@@ -93,7 +94,7 @@ void tablahash_eliminar(TablaHash* tabla, void* clave) {
     while (newIdx != idx) {
       spot = &(tabla->tabla[newIdx]);
       if (spot->clave && !tabla->iguales(spot->clave, clave))
-        newIdx = (idx+INTV_HASH_DOBLE) % tabla->capacidad;
+        newIdx = (newIdx+INTV_HASH_DOBLE) % tabla->capacidad;
       else
         idx = newIdx;
     }

@@ -352,13 +352,14 @@ Set set_clonar(Set set) {
     return resultado;
 }
 
+
 /* Agrega recursivamente los nodos de menorAltura en mayorAltura. */
-Set unir_sets(Set resultado, Set menorAltura) {
+Set generar_union(Set resultado, Set menorAltura) {
   if (set_empty(menorAltura))
     return resultado;
   resultado = set_insertar(resultado, menorAltura->intv);
-  resultado = unir_sets(resultado, menorAltura->left);
-  resultado = unir_sets(resultado, menorAltura->right);
+  resultado = generar_union(resultado, menorAltura->left);
+  resultado = generar_union(resultado, menorAltura->right);
   return resultado;
 }
 
@@ -372,7 +373,7 @@ Set set_union(Set set1, Set set2) {
   Set mayorAltura = (set2->altura < set1->altura) ? set1 : set2;
   /* Se crea una copia del Set de mayor altura, y luego se agregar los elementos de menorAltura a él. */
   Set resultado = set_clonar(mayorAltura);
-  resultado = unir_sets(resultado, menorAltura);
+  resultado = generar_union(resultado, menorAltura);
   return resultado;
 }
 

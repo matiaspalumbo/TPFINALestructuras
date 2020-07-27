@@ -186,7 +186,7 @@ que se pida crear un conjunto por comprensión. */
 void validar_creacion_comprension(Estado* estado) {
   char c1, c2, lineSkip, emptyStr;
   long long *par = malloc(sizeof(long long)*2);
-  /* si el comando es válido, se almacenan los valores ingresados, 
+  /* Si el comando es válido, se almacenan los valores ingresados, 
   y se crea el conjunto correspondiente. */
   int numEscaneos = sscanf(estado->alias[2], "%s = {%c : %lld <= %c <= %lld}%c%c",
     estado->alias[0], &c1, &(par[0]), &c2, &(par[1]), &lineSkip, &emptyStr);

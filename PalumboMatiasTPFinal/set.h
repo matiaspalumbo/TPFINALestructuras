@@ -51,7 +51,6 @@ Set set_interseccion(Set set1, Set set2);
 /* Devuelve la resta de set1 con set2 (set1 \ set2). */
 Set set_resta(Set set1, Set set2);
 
-
 /* Imprime el conjunto dado en orden, sus elementos separados por ",". */
 void set_imprimir(Set set);
 

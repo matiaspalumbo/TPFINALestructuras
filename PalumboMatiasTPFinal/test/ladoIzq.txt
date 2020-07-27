@@ -1,0 +1,24 @@
+A = {1,2,3,7,8,9,10,11,47}
+B = {x : -3 <= x <= 8}
+C = {y : 6 <= y <= 15}
+AB = A | B
+imprimir AB
+CA = C | A
+CB = C | B
+AiB = A & B
+CAiB = C | AiB
+imprimir CAiB
+Rest1 = A - B
+Rest2 = A - Rest1
+imprimir Rest2
+CompAiB = ~AiB
+imprimir CompAiB
+CompAB = ~AB
+imprimir CompAB
+AmenosAiB = A - AiB
+imprimir AmenosAiB
+Vacio = {}
+imprimir Vacio
+U = ~Vacio
+imprimir U
+salir

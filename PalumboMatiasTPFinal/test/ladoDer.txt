@@ -1,0 +1,24 @@
+A = {1,2,3,7,8,9,10,11,47}
+B = {x : -3 <= x <= 8}
+C = {y : 6 <= y <= 15}
+BA = B | A
+imprimir BA
+CA = C | A
+CB = C | B
+AiB = A & B
+CAiCB = CA & CB
+imprimir CAiCB
+imprimir AiB
+CompA = ~A
+CompB = ~B
+CAuCB = CompA | CompB
+imprimir CAuCB
+CAiCB = CompA & CompB
+imprimir CAiCB
+Rest1 = A - B
+imprimir Rest1
+AiCompA = A & CompA
+imprimir AiCompA
+ACompA = A | CompA
+imprimir ACompA
+salir
