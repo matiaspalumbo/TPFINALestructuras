@@ -31,7 +31,7 @@ $(TABLAHASH:.c=.o) : $(TABLAHASH) $(TABLAHASH:.c=.h) $(PILA:.c=.h)
 $(SET:.c=.o) : $(SET) $(SET:.c=.h) $(ITREE:.c=.h)
 	gcc $(FLAGS) -c $(SET)
 
-# Archivo objeto de la implementación de Sets.
+# Archivo objeto de la implementación de árboles AVL de intervalos.
 $(ITREE:.c=.o) : $(ITREE) $(ITREE:.c=.h) $(INTERVALO:.c=.h) $(PILA:.c=.h)
 	gcc $(FLAGS) -c $(ITREE)
 
