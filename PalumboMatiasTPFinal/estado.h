@@ -3,6 +3,7 @@
 
 #include "set.h"
 #include "tablahash.h"
+#include "intervalo.h"
 
 /* Archivo de cabecera de la implementación del Estado del intérprete. */
 

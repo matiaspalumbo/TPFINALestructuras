@@ -123,7 +123,7 @@ void validar_creacion_extension(Estado* estado) {
       /* Bandera que indica si algún número escaneado no puede ser expresado como int. */
       int elemNovalido = 0;
       estado->elements = set_crear();
-      Intervalo* intv = malloc(sizeof(Intervalo));
+      Intervalo* intv = intv_crear();
        /* Se escanean los números hasta que el comando no sea válido o se termine el conjunto. */
       while (numEscaneos == 3 && c == ',') {
         numEscaneos = sscanf(estado->alias[2], "%lld%c%s", &dato, &c, estado->alias[2]);
@@ -143,7 +143,7 @@ void validar_creacion_extension(Estado* estado) {
         set_destruir(estado->elements);
       } else if (numEscaneos == 1)
         estado->estadoInput = CrearPorExtension;
-      free(intv);
+      intv_destruir(intv);
     } else
       estado->tipoError = ComandoNoValido;
   }
@@ -194,12 +194,12 @@ void validar_creacion_comprension(Estado* estado) {
     && isalpha(c1) && validar_elementos(par[0]) && validar_elementos(par[1])) {
     estado->estadoInput = CrearPorComprension;
     if (par[0] <= par[1]) {
-      Intervalo* intv = malloc(sizeof(Intervalo));
+      Intervalo* intv = intv_crear();
       intv->izq = (int)(par[0]);
       intv->der = (int)(par[1]);
       estado->elements = set_crear();
       estado->elements = set_insertar(estado->elements, intv);
-      free(intv);
+      intv_destruir(intv);
     }
   } else
     /* Se contempla el caso en que los números ingresados no entran en un int. */
