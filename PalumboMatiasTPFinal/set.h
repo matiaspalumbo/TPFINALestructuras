@@ -4,9 +4,10 @@
 #include "itree.h"
 #include "intervalo.h"
 
-/* Se representan conjuntos (Sets) de enteros mediante árboles AVL de intervalos. */
+/* Archivo de cabecera de la implementación de conjuntos de números enteros. */
 
 
+/* Los conjuntos se representan mediante árboles AVL de intervalos. */
 typedef ITree Set;
 
 typedef Set (*OperacionBinaria)(Set, Set);

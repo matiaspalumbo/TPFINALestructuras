@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <limits.h>
 
-/* Archivo con la implementación de conjuntos (ITrees). */
+/* Archivo con la implementación de árboles AVL de intervalos. */
 
 
 ITree itree_crear() {
@@ -159,7 +159,7 @@ ITree agregar_a_intv_existente(ITree nodo, Intervalo* intv, int direccion) {
 }
 
 
-/* Agrega un intervalo al ITree. */
+/* Agrega un intervalo al ITree dado. */
 ITree itree_insertar(ITree nodo, Intervalo *intv) {
   if (itree_empty(nodo)) { /* Si el nodo es vacío, se debe insertar aquí. */
     nodo = malloc(sizeof(ITNodo));

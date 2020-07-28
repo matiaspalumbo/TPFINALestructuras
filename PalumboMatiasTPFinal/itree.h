@@ -7,7 +7,7 @@
 
 
 typedef struct _ITNodo {
-  Intervalo* intv;
+  Intervalo* intv; // Intervalo del nodo.
   int max, min, altura; // Extremo derecho máximo, izquierdo mínimo y altura del nodo, respectivamente.
   struct _ITNodo *right; // Hijo derecho.
   struct _ITNodo *left; // Hijo izquierdo.

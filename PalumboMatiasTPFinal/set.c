@@ -32,8 +32,8 @@ void set_imprimir_aux(Set nodo, int max) {
   if (!set_empty(nodo)) {
     set_imprimir_aux(nodo->left, max);
     intv_imprimir(nodo->intv);
-    /* Si el extremo derecho es igual al máximo, es el último nodo del árbol,
-    ya que los intervalos del árbol son disjuntos dos a dos. */
+    /* Si el extremo derecho es igual al máximo, es el último nodo del conjunto,
+    ya que todos los intervalos son disjuntos dos a dos. */
     if (nodo->intv->der != max)
       printf(",");
     set_imprimir_aux(nodo->right, max);
@@ -67,7 +67,7 @@ Set set_clonar(Set set) {
 }
 
 
-/* Agrega recursivamente los nodos de menorAltura en mayorAltura. */
+/* Agrega recursivamente los nodos de menorAltura a mayorAltura. */
 Set generar_union(Set resultado, Set menorAltura) {
   if (set_empty(menorAltura))
     return resultado;
@@ -82,7 +82,7 @@ Set set_union(Set set1, Set set2) {
     Set resultado = set_clonar((set_empty(set1)) ? set2 : set1);
     return resultado;
   }
-  /* Se distingue el árbol de mayor altura del menor altura. */
+  /* Se distingue el conjunto cuyo árbol es de mayor altura con el de menor altura. */
   Set menorAltura = (set2->altura < set1->altura) ? set2 : set1;
   Set mayorAltura = (set2->altura < set1->altura) ? set1 : set2;
   /* Se crea una copia del Set de mayor altura, y luego se agregar los elementos de menorAltura a él. */
@@ -150,7 +150,7 @@ Set set_intersecar(Set set, Intervalo *intv, Intervalo* buffer, Set resultado) {
     buffer->der = (set->intv->der < intv->der) ? set->intv->der : intv->der;
     resultado = set_insertar(resultado, buffer);
   }
-  /* Verifica si es posible que haya intersección en los subárboles,
+  /* Verifica si es posible que haya intersección en los subárboles del nodo del conjunto,
   y, en caso de serlo, continúa la búsqueda. */
   if (!set_empty(set->left) && intv->izq <= set->left->max && intv->der >= set->left->min)
     resultado = set_intersecar(set->left, intv, buffer, resultado);
@@ -172,7 +172,7 @@ Set generar_interseccion(Set resultado, Set mayorAltura, Set menorAltura, Interv
 Set set_interseccion(Set set1, Set set2) {
   if (set_empty(set1) || set_empty(set2))
     return NULL;
-  /* Se distingue el árbol de mayor altura del menor altura. */
+  /* Se distingue el conjunto con árbol de mayor altura del de menor altura. */
   Set menorAltura = (set2->altura < set1->altura) ? set2 : set1;
   Set mayorAltura = (set2->altura < set1->altura) ? set1 : set2;
   Intervalo* intv = intv_crear();
