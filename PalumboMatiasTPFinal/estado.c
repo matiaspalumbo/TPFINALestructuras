@@ -240,3 +240,4 @@ void validar_input(TablaHash* conjs, Estado* estado) {
   else
     estado->tipoError = ComandoNoValido;
 }
+

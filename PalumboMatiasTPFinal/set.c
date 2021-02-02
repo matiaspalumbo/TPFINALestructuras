@@ -194,3 +194,4 @@ Set set_resta(Set set1, Set set2) {
   set_destruir(complemento);
   return resultado;
 }
+

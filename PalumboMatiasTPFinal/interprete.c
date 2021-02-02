@@ -105,3 +105,4 @@ void interface() {
   destruir_estado(estado);
   tablahash_destruir(listaConjuntos);
 }
+

@@ -150,3 +150,4 @@ void tablahash_destruir(TablaHash* tabla) {
   free(tabla->tabla);
   free(tabla);
 }
+

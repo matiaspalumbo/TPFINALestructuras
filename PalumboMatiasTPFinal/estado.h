@@ -65,3 +65,4 @@ void validar_input(TablaHash* conjs, Estado* estado);
 
 #endif /* __ESTADO_H__ */
 
+
